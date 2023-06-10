@@ -79,6 +79,11 @@ const DeviceDescription ross_backpack = DeviceDescription(
                            });
 
 const DeviceDescription whatever = SimpleRfBoardDescription(18, {Circular});
+const DeviceDescription will_backpack = DeviceDescription(
+    RF_BOARD_MA_SUPPORTED, {
+                               StripDescription(96, {}),
+                               StripDescription(96, {Reversed}),
+    });
 
 // Modify this variable to easily switch between devices.
 const DeviceDescription &current = scarf;
