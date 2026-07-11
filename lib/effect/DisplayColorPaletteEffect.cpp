@@ -5,7 +5,7 @@ DisplayColorPaletteEffect::DisplayColorPaletteEffect() : Effect() {}
 CRGB DisplayColorPaletteEffect::GetRGB(uint8_t led_index, uint32_t time_ms,
                                        const StripDescription &strip,
                                        RadioPacket *setEffectPacket) const {
-  ColorPalette palette =
+  const ColorPalette &palette =
       palettes()[setEffectPacket->readPaletteIndexFromSetEffect()];
   CHSV color;
   if (strip.led_count < palette.Size() && palette.Size() <= 4) {
