@@ -20,9 +20,9 @@
 
 **Purpose**: Confirm a green baseline in the worktree so every later failure is attributable to a fix.
 
-- [ ] T001 Configure host build in the worktree: `mkdir -p build && cd build && cmake .. -DBUILD_SIMULATOR=false && make && make test` — all existing tests must pass before any change
-- [ ] T002 [P] Baseline firmware builds: `pio run -e node -e fancy-node -e controller` succeed at branch point (note: `[env:node]`'s bossac `platform_packages` entry is OS-specific per CLAUDE.md — use the Apple-silicon variant)
-- [ ] T003 [P] Baseline lint: `./lint.sh check` is clean at branch point
+- [x] T001 Configure host build in the worktree: `mkdir -p build && cd build && cmake .. -DBUILD_SIMULATOR=false && make && make test` — all existing tests must pass before any change
+- [x] T002 [P] Baseline firmware builds: `pio run -e node -e fancy-node -e controller` succeed at branch point (note: `[env:node]`'s bossac `platform_packages` entry is OS-specific per CLAUDE.md — use the Apple-silicon variant)
+- [x] T003 [P] Baseline lint: `./lint.sh check` is clean at branch point
 
 **Checkpoint**: Baseline green. Record the baseline commit hash (`f7547e1`) in your notes; all golden values captured later are captured at pre-fix state.
 
@@ -42,13 +42,13 @@
 
 **Independent Test**: `./build/smalltests --gtest_filter='RadioPacketTest*'` proves decode→re-encode losslessness; `InvalidPacketTest` (largetests) still green.
 
-- [ ] T004 [US1] Write conformance tests in `test/RadioPacketTest.cpp` per the table in `contracts/wire-format.md`: encode→decode round-trip for payload lengths 0/1/4/58 across all four packet types; decode a hand-built wire frame → re-encode → byte-compare; `Deserialize` returns false for len 0/1/2 and for payload > 58; garbage type byte is tolerated (returns true); relay scenario (decode master heartbeat frame → re-encode → decode as third node → same network time). These won't compile yet (codec doesn't exist) — that's expected TDD red.
-- [ ] T005 [US1] Declare `uint8_t Serialize(uint8_t* buf) const` and `bool Deserialize(const uint8_t* buf, uint8_t len)` on `RadioPacket` in `lib/radio/Radio.hpp`, with doc comments stating the contract from `contracts/wire-format.md`
-- [ ] T006 [US1] Implement both methods in `lib/radio/Radio.cpp`: Serialize writes packet_id big-endian (buf[0]=high), type byte, payload, returns `3 + dataLength`; Deserialize validates `len >= 3 && len - 3 <= PACKET_DATA_LENGTH`, sets all fields including `dataLength = len - 3`. Re-run `cmake ..` in `build/` if needed; make T004 tests pass
-- [ ] T007 [US1] Delegate in `src/arduino/RadioHeadRadio.cpp`: `sendPacket` serializes via `packet.Serialize(buffer.data())`; `readPacket` calls `packet.Deserialize(buffer.data(), received_length)` after the existing `received_length > kFrontPacketPadding` check (which stays — CLAIM_MASTER drop behavior is out of scope). Keep all `radio.available()` mode-management calls exactly where they are
-- [ ] T008 [US1] Run per-commit gate: `./lint.sh check`; full host suite (smalltests + largetests — InvalidPacketTest must stay green); `pio run -e node -e fancy-node`
-- [ ] T009 [US1] Verifier review of the staged D1 diff (fresh context): provide defect description, `contracts/wire-format.md`, and the CLAUDE.md invariants (invalid packets never crash; switch tolerance). Address all findings, re-running T008 after any change
-- [ ] T010 [US1] Commit: `Fix D1: set dataLength on radio receive so rebroadcasts carry payload` (message references specs/002-fix-audit-findings and the review)
+- [x] T004 [US1] Write conformance tests in `test/RadioPacketTest.cpp` per the table in `contracts/wire-format.md`: encode→decode round-trip for payload lengths 0/1/4/58 across all four packet types; decode a hand-built wire frame → re-encode → byte-compare; `Deserialize` returns false for len 0/1/2 and for payload > 58; garbage type byte is tolerated (returns true); relay scenario (decode master heartbeat frame → re-encode → decode as third node → same network time). These won't compile yet (codec doesn't exist) — that's expected TDD red.
+- [x] T005 [US1] Declare `uint8_t Serialize(uint8_t* buf) const` and `bool Deserialize(const uint8_t* buf, uint8_t len)` on `RadioPacket` in `lib/radio/Radio.hpp`, with doc comments stating the contract from `contracts/wire-format.md`
+- [x] T006 [US1] Implement both methods in `lib/radio/Radio.cpp`: Serialize writes packet_id big-endian (buf[0]=high), type byte, payload, returns `3 + dataLength`; Deserialize validates `len >= 3 && len - 3 <= PACKET_DATA_LENGTH`, sets all fields including `dataLength = len - 3`. Re-run `cmake ..` in `build/` if needed; make T004 tests pass
+- [x] T007 [US1] Delegate in `src/arduino/RadioHeadRadio.cpp`: `sendPacket` serializes via `packet.Serialize(buffer.data())`; `readPacket` calls `packet.Deserialize(buffer.data(), received_length)` after the existing `received_length > kFrontPacketPadding` check (which stays — CLAIM_MASTER drop behavior is out of scope). Keep all `radio.available()` mode-management calls exactly where they are
+- [x] T008 [US1] Run per-commit gate: `./lint.sh check`; full host suite (smalltests + largetests — InvalidPacketTest must stay green); `pio run -e node -e fancy-node`
+- [x] T009 [US1] Verifier review of the staged D1 diff (fresh context): provide defect description, `contracts/wire-format.md`, and the CLAUDE.md invariants (invalid packets never crash; switch tolerance). Address all findings, re-running T008 after any change
+- [x] T010 [US1] Commit: `Fix D1: set dataLength on radio receive so rebroadcasts carry payload` (message references specs/002-fix-audit-findings and the review)
 
 **Checkpoint**: MVP delivered — the mesh-breaking bug is fixed and provably lossless on the wire.
 
@@ -62,25 +62,25 @@
 
 ### D4 — palette copies (commit 2)
 
-- [ ] T011 [US2] At pre-fix state, add a golden spot-check to `test/EffectsTest.cpp`: for a fixed tuple (e.g., RainbowEffect + SparkEffect, palette 8, time_ms 123456, 36-LED plain strip), assert exact RGB values at LED 0/17/35 — capture the actual pre-fix outputs as the expected constants by running the test once and pinning values. Verify it PASSES before the fix
-- [ ] T012 [US2] Change palette bindings to `const ColorPalette&` in all 11 files: `lib/effect/ColorCycleEffect.cpp`, `ContrastBumpsEffect.cpp`, `DisplayColorPaletteEffect.cpp`, `FireflyEffect.cpp`, `LightningEffect.cpp`, `RainbowBumpsEffect.cpp`, `RainbowEffect.cpp`, `RorschachEffect.cpp`, `SimpleBlinkEffect.cpp`, `SparkEffect.cpp`, `SwingingLights.cpp`. Do NOT touch FireEffect/PrideEffect (member palettes). Golden test and full EffectsTest fuzz must still pass
-- [ ] T013 [US2] Run per-commit gate: `./lint.sh check`; full host suite; `pio run -e node -e fancy-node`
-- [ ] T014 [US2] Verifier review of staged D4 diff (reference: R4 in research.md; check every binding actually binds to `Effect::palettes()`'s static storage, not a temporary). Address findings
-- [ ] T015 [US2] Commit: `Fix D4: bind palettes by const reference in effects (no per-LED heap alloc)`
+- [x] T011 [US2] At pre-fix state, add a golden spot-check to `test/EffectsTest.cpp`: for a fixed tuple (e.g., RainbowEffect + SparkEffect, palette 8, time_ms 123456, 36-LED plain strip), assert exact RGB values at LED 0/17/35 — capture the actual pre-fix outputs as the expected constants by running the test once and pinning values. Verify it PASSES before the fix
+- [x] T012 [US2] Change palette bindings to `const ColorPalette&` in all 11 files: `lib/effect/ColorCycleEffect.cpp`, `ContrastBumpsEffect.cpp`, `DisplayColorPaletteEffect.cpp`, `FireflyEffect.cpp`, `LightningEffect.cpp`, `RainbowBumpsEffect.cpp`, `RainbowEffect.cpp`, `RorschachEffect.cpp`, `SimpleBlinkEffect.cpp`, `SparkEffect.cpp`, `SwingingLights.cpp`. Do NOT touch FireEffect/PrideEffect (member palettes). Golden test and full EffectsTest fuzz must still pass
+- [x] T013 [US2] Run per-commit gate: `./lint.sh check`; full host suite; `pio run -e node -e fancy-node`
+- [x] T014 [US2] Verifier review of staged D4 diff (reference: R4 in research.md; check every binding actually binds to `Effect::palettes()`'s static storage, not a temporary). Address findings
+- [x] T015 [US2] Commit: `Fix D4: bind palettes by const reference in effects (no per-LED heap alloc)`
 
 ### D5 — per-LED re-resolution in RunEffect (commit 3)
 
-- [ ] T016 [US2] In `lib/led_manager/LedManager.cpp` `RunEffect`: hoist `Effect* effect = GetCurrentEffect()`, `RadioPacket* packet = radio_state->GetSetEffect()`, `uint32_t time_ms = radio_state->GetNetworkMillis()` above the strip loop; iterate `for (const StripDescription& strip : device.strips)`; keep Reversed/Dim/Off handling byte-identical. All existing tests must pass
-- [ ] T017 [US2] Run per-commit gate: `./lint.sh check`; full host suite; `pio run -e node -e fancy-node`
-- [ ] T018 [US2] Verifier review of staged D5 diff (reference: R5 in research.md; confirm no mid-frame packet mutation is possible in the single-threaded loop and flag handling is unchanged). Address findings
-- [ ] T019 [US2] Commit: `Fix D5: resolve effect, packet, and network time once per frame in RunEffect`
+- [x] T016 [US2] In `lib/led_manager/LedManager.cpp` `RunEffect`: hoist `Effect* effect = GetCurrentEffect()`, `RadioPacket* packet = radio_state->GetSetEffect()`, `uint32_t time_ms = radio_state->GetNetworkMillis()` above the strip loop; iterate `for (const StripDescription& strip : device.strips)`; keep Reversed/Dim/Off handling byte-identical. All existing tests must pass
+- [x] T017 [US2] Run per-commit gate: `./lint.sh check`; full host suite; `pio run -e node -e fancy-node`
+- [x] T018 [US2] Verifier review of staged D5 diff (reference: R5 in research.md; confirm no mid-frame packet mutation is possible in the single-threaded loop and flag handling is unchanged). Address findings
+- [x] T019 [US2] Commit: `Fix D5: resolve effect, packet, and network time once per frame in RunEffect`
 
 ### D6 — per-write LED-count recomputation (commit 4)
 
-- [ ] T020 [US2] Add `const uint16_t led_count_` member to `FastLedManager` in `src/arduino/FastLedManager.hpp`, initialize from `device.GetLedCount()` in the constructor in `src/arduino/FastLedManager.cpp`, and use it in `SetLed`'s single-LED special case (and anywhere else the class calls `GetLedCount()` repeatedly, e.g. `PlayStartupAnimation` may keep its local)
-- [ ] T021 [US2] Run per-commit gate: `./lint.sh check`; full host suite (unaffected but cheap); `pio run -e node -e fancy-node` (this file compiles in both)
-- [ ] T022 [US2] Verifier review of staged D6 diff (reference: R6 in research.md; hardware-only class — review is the primary check). Address findings
-- [ ] T023 [US2] Commit: `Fix D6: cache device LED count in FastLedManager instead of recomputing per write`
+- [x] T020 [US2] Add `const uint16_t led_count_` member to `FastLedManager` in `src/arduino/FastLedManager.hpp`, initialize from `device.GetLedCount()` in the constructor in `src/arduino/FastLedManager.cpp`, and use it in `SetLed`'s single-LED special case (and anywhere else the class calls `GetLedCount()` repeatedly, e.g. `PlayStartupAnimation` may keep its local)
+- [x] T021 [US2] Run per-commit gate: `./lint.sh check`; full host suite (unaffected but cheap); `pio run -e node -e fancy-node` (this file compiles in both)
+- [x] T022 [US2] Verifier review of staged D6 diff (reference: R6 in research.md; hardware-only class — review is the primary check). Address findings
+- [x] T023 [US2] Commit: `Fix D6: cache device LED count in FastLedManager instead of recomputing per write`
 
 **Checkpoint**: Render path allocation-free per LED; frames time-consistent; all suites green.
 
@@ -94,19 +94,19 @@
 
 ### D2 — heartbeat decode UB (commit 5)
 
-- [ ] T024 [US3] Add heartbeat boundary round-trip tests to `test/RadioPacketTest.cpp`: `writeHeartbeat`/`readTimeFromHeartbeat` at 0, 1, 0x7FFFFFFF, 0x80000000, 0xFFFFFFFF. Run pre-fix and confirm UBSan reports a shift error for the top-bit-set cases (TDD red — the runtime error is the failure)
-- [ ] T025 [US3] Fix `readTimeFromHeartbeat` in `lib/radio/Radio.cpp`: cast each byte to `uint32_t` before shifting (all four lanes for symmetry). T024 tests now pass UBSan-clean
-- [ ] T026 [US3] Run per-commit gate: `./lint.sh check`; full host suite; `pio run -e node -e fancy-node`
-- [ ] T027 [US3] Verifier review of staged D2 diff (reference: R2 in research.md; confirm big-endian decode unchanged for values < 0x80000000). Address findings
-- [ ] T028 [US3] Commit: `Fix D2: UB-free heartbeat time decode for all 32-bit values`
+- [x] T024 [US3] Add heartbeat boundary round-trip tests to `test/RadioPacketTest.cpp`: `writeHeartbeat`/`readTimeFromHeartbeat` at 0, 1, 0x7FFFFFFF, 0x80000000, 0xFFFFFFFF. Run pre-fix and confirm UBSan reports a shift error for the top-bit-set cases (TDD red — the runtime error is the failure)
+- [x] T025 [US3] Fix `readTimeFromHeartbeat` in `lib/radio/Radio.cpp`: cast each byte to `uint32_t` before shifting (all four lanes for symmetry). T024 tests now pass UBSan-clean
+- [x] T026 [US3] Run per-commit gate: `./lint.sh check`; full host suite; `pio run -e node -e fancy-node`
+- [x] T027 [US3] Verifier review of staged D2 diff (reference: R2 in research.md; confirm big-endian decode unchanged for values < 0x80000000). Address findings
+- [x] T028 [US3] Commit: `Fix D2: UB-free heartbeat time decode for all 32-bit values`
 
 ### D3 — Firefly shift-count UB (commit 6)
 
-- [ ] T029 [US3] Create `test/FireflyEffectTest.cpp`: (a) at pre-fix state, capture golden CRGB outputs for FireflyEffect on a Controller-flagged strip at indices 0–31 (fixed time/palette) and pin them as expected constants — verify green pre-fix; (b) add a case rendering every index 0–255 on a 255-LED Controller-flagged strip — confirm UBSan reports shift-count overflow pre-fix (TDD red). Re-run `cmake ..` to pick up the new file
-- [ ] T030 [US3] Fix `lib/effect/FireflyEffect.cpp:23`: `offset = ((uint32_t)(kBlinkPeriod + 1234) << (led_index & 31)) % (kBlinkPeriod / 2);` — mask is a no-op for indices < 32 (golden test proves bit-identical); full-range case now UBSan-clean
-- [ ] T031 [US3] Run per-commit gate: `./lint.sh check`; full host suite (EffectsTest fuzz included); `pio run -e node -e fancy-node`
-- [ ] T032 [US3] Verifier review of staged D3 diff (reference: R3 in research.md; confirm behavior preservation argument and that unsigned wraparound for indices ≥ 22 was already present pre-fix). Address findings
-- [ ] T033 [US3] Commit: `Fix D3: well-defined Firefly offset shift for all LED indices`
+- [x] T029 [US3] Create `test/FireflyEffectTest.cpp`: (a) at pre-fix state, capture golden CRGB outputs for FireflyEffect on a Controller-flagged strip at indices 0–31 (fixed time/palette) and pin them as expected constants — verify green pre-fix; (b) add a case rendering every index 0–255 on a 255-LED Controller-flagged strip — confirm UBSan reports shift-count overflow pre-fix (TDD red). Re-run `cmake ..` to pick up the new file
+- [x] T030 [US3] Fix `lib/effect/FireflyEffect.cpp:23`: `offset = ((uint32_t)(kBlinkPeriod + 1234) << (led_index & 31)) % (kBlinkPeriod / 2);` — mask is a no-op for indices < 32 (golden test proves bit-identical); full-range case now UBSan-clean
+- [x] T031 [US3] Run per-commit gate: `./lint.sh check`; full host suite (EffectsTest fuzz included); `pio run -e node -e fancy-node`
+- [x] T032 [US3] Verifier review of staged D3 diff (reference: R3 in research.md; confirm behavior preservation argument and that unsigned wraparound for indices ≥ 22 was already present pre-fix). Address findings
+- [x] T033 [US3] Commit: `Fix D3: well-defined Firefly offset shift for all LED indices`
 
 **Checkpoint**: Host suite exercises the exact former-UB boundaries and is sanitizer-clean.
 
@@ -118,10 +118,10 @@
 
 **Independent Test**: `pio run -e controller` builds; code inspection confirms both chains test `right_buttons`; manual hardware test documented.
 
-- [ ] T034 [US4] Fix `src/devices/controller/controller.cpp`: line 179 `left_buttons[1]` → `right_buttons[1]` (RunEffectMode right-button chain); lines 267/270 `left_buttons[1]`/`left_buttons[2]` → `right_buttons[1]`/`right_buttons[2]` (RunColorMode right-button chain). Touch nothing else — the Run*Mode dedup refactor is explicitly out of scope
-- [ ] T035 [US4] Run per-commit gate: `./lint.sh check`; full host suite (unaffected but cheap); `pio run -e controller` (CI doesn't build this env — local build is the gate)
-- [ ] T036 [US4] Verifier review of staged D7 diff (reference: R7 in research.md; cross-check against RunPaletteMode's correct pattern at lines 336–348). Address findings
-- [ ] T037 [US4] Commit: `Fix D7: right-button LED feedback tests right buttons (copy-paste fix)` — include the manual test procedure in the commit message (flash controller; Effect mode: press right button 2, its own LED shows pressed state; repeat right buttons in DirectColor mode)
+- [x] T034 [US4] Fix `src/devices/controller/controller.cpp`: line 179 `left_buttons[1]` → `right_buttons[1]` (RunEffectMode right-button chain); lines 267/270 `left_buttons[1]`/`left_buttons[2]` → `right_buttons[1]`/`right_buttons[2]` (RunColorMode right-button chain). Touch nothing else — the Run*Mode dedup refactor is explicitly out of scope
+- [x] T035 [US4] Run per-commit gate: `./lint.sh check`; full host suite (unaffected but cheap); `pio run -e controller` (CI doesn't build this env — local build is the gate)
+- [x] T036 [US4] Verifier review of staged D7 diff (reference: R7 in research.md; cross-check against RunPaletteMode's correct pattern at lines 336–348). Address findings
+- [x] T037 [US4] Commit: `Fix D7: right-button LED feedback tests right buttons (copy-paste fix)` — include the manual test procedure in the commit message (flash controller; Effect mode: press right button 2, its own LED shows pressed state; repeat right buttons in DirectColor mode)
 
 **Checkpoint**: Both copy-paste sites corrected; manual procedure recorded for next hardware session.
 
@@ -133,9 +133,9 @@
 
 **Independent Test**: `pio run -e node` builds; `grep -n print_alive_at src/devices/node/node.cpp` returns nothing.
 
-- [ ] T038 [US5] Remove the `print_alive_at` global (line 142) and the `if (millis() > print_alive_at)` block (lines 149–152) from `src/devices/node/node.cpp`; leave `watchdog_counter` logic untouched
-- [ ] T039 [US5] Run per-commit gate: `./lint.sh check`; full host suite (unaffected but cheap); `pio run -e node`
-- [ ] T040 [US5] Commit: `Fix D8: remove dead keep-alive block from node loop` — verifier review skipped per delegation policy (trivial dead-code removal, PR-003 exemption)
+- [x] T038 [US5] Remove the `print_alive_at` global (line 142) and the `if (millis() > print_alive_at)` block (lines 149–152) from `src/devices/node/node.cpp`; leave `watchdog_counter` logic untouched
+- [x] T039 [US5] Run per-commit gate: `./lint.sh check`; full host suite (unaffected but cheap); `pio run -e node`
+- [x] T040 [US5] Commit: `Fix D8: remove dead keep-alive block from node loop` — verifier review skipped per delegation policy (trivial dead-code removal, PR-003 exemption)
 
 **Checkpoint**: All eight defects fixed, eight commits on the branch.
 
@@ -145,10 +145,10 @@
 
 **Purpose**: Final validation of the whole branch and documentation debt.
 
-- [ ] T041 Run `./ci.sh` at the branch tip (exact CI pipeline: cmake without simulator + smalltests + largetests) — must be green
-- [ ] T042 [P] Update `docs/` radio/network notes for the D1 behavior change (documented mesh rebroadcast behavior was wrong on hardware; CLAUDE.md requires docs updates when documented behavior changes) — folds into a final docs commit
-- [ ] T043 [P] Verify branch hygiene: exactly 8 fix commits (one per defect, D-ID in each message), no unrelated diffs, spec artifacts committed; reconcile `specs/002-fix-audit-findings/` into a docs/spec commit if not yet committed
-- [ ] T044 Re-run quickstart.md "Done when" checklist end-to-end; note the two hardware-only validations (D7 manual button test, 3-node mesh relay smoke test) as pending-hardware if no boards are attached
+- [x] T041 Run `./ci.sh` at the branch tip (exact CI pipeline: cmake without simulator + smalltests + largetests) — must be green
+- [x] T042 [P] Update `docs/` radio/network notes for the D1 behavior change (documented mesh rebroadcast behavior was wrong on hardware; CLAUDE.md requires docs updates when documented behavior changes) — folds into a final docs commit
+- [x] T043 [P] Verify branch hygiene: exactly 8 fix commits (one per defect, D-ID in each message), no unrelated diffs, spec artifacts committed; reconcile `specs/002-fix-audit-findings/` into a docs/spec commit if not yet committed
+- [x] T044 Re-run quickstart.md "Done when" checklist end-to-end; note the two hardware-only validations (D7 manual button test, 3-node mesh relay smoke test) as pending-hardware if no boards are attached
 
 ---
 

@@ -8,7 +8,7 @@ How Firefly2 devices talk to each other. The stack, bottom to top:
 | Abstraction | `Radio` | `lib/radio/Radio.hpp` | `readPacket` / `sendPacket` / `sleep` interface |
 | Mesh | `NetworkManager` | `src/generic/NetworkManager.{hpp,cpp}` | Rebroadcast + duplicate suppression |
 | Protocol | `RadioStateMachine` | `src/generic/RadioStateMachine.{hpp,cpp}` | Master/slave election, time sync, effect scheduling |
-| Wire format | `RadioPacket` | `lib/radio/Radio.hpp:27` | Packet struct + serialization helpers |
+| Wire format | `RadioPacket` | `lib/radio/Radio.hpp:27` | Packet struct + wire codec (`Serialize`/`Deserialize`) + payload helpers |
 
 Test doubles: `FakeRadio` (`lib/fake-radio/`) and `FakeNetwork` (`test/FakeNetwork.{hpp,cpp}`) simulate a multi-node network, including configurable packet loss.
 
@@ -21,7 +21,7 @@ Struct (`lib/radio/Radio.hpp:27-71`):
 - `uint8_t dataLength`
 - `std::array<uint8_t, 58> data` — `PACKET_DATA_LENGTH = 58` (`Radio.hpp:25`)
 
-On-air framing (`RadioHeadRadio.cpp:46-64`): `[packet_id high][packet_id low][type][data...]` — a 3-byte header (`kFrontPacketPadding = 3`, `RadioHeadRadio.hpp:11`). The RFM69 FIFO is 64 bytes; RadioHead uses 3, leaving 61 (`kMaxPacketSize`), minus the 3-byte header = 58 bytes of payload. That is where `PACKET_DATA_LENGTH` comes from.
+On-air framing (`RadioPacket::Serialize`/`Deserialize`, `lib/radio/Radio.cpp`; `RadioHeadRadio` delegates to them): `[packet_id high][packet_id low][type][data...]` — a 3-byte header (`PACKET_HEADER_LENGTH = 3`; `RadioHeadRadio.hpp` keeps the equivalent `kFrontPacketPadding`). The RFM69 FIFO is 64 bytes; RadioHead uses 3, leaving 61 (`kMaxPacketSize`), minus the 3-byte header = 58 bytes of payload. That is where `PACKET_DATA_LENGTH` comes from. The codec is host-tested for byte-exact round-trips (`test/RadioPacketTest.cpp`); `Deserialize` sets `dataLength` from the wire length — a receive-side bug where it was never set used to truncate every mesh rebroadcast to header-only, breaking multi-hop sync (fixed in specs/002-fix-audit-findings, D1). Header-only frames (3 bytes, e.g. CLAIM_MASTER) are still dropped on receive by `RadioHeadRadio` — a pre-existing quirk, deliberately unchanged.
 
 ### Packet types (`Radio.hpp:7-23`)
 
