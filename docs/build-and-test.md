@@ -50,7 +50,7 @@ make test           # or run ./smalltests / ./largetests directly
 
 ### Test binaries
 
-- **`smalltests`** — all of `test/` except `InvalidPacketTest`: ColorPalette, Debug, Effects, LedManager, Math, NetworkManager, Perlin, RadioPacket, RadioStateIntegration, RadioStateMachine, StripDescription.
+- **`smalltests`** — all of `test/` except `InvalidPacketTest`: ColorPalette, Debug, Effects (incl. golden output spot-checks), FireflyEffect, LedManager, Math, NetworkManager, Perlin, RadioPacket (incl. wire-codec round-trips), RadioStateIntegration, RadioStateMachine, StripDescription. New `test/*Test.cpp` files are picked up automatically by the CMake glob.
 - **`largetests`** — only `InvalidPacketTest.cpp`, split out because it's a combinatorial fuzz (`testing::Combine`: 10 ids × 8 types × 20 lengths × 9 data vectors) and slow.
 
 ### Test doubles

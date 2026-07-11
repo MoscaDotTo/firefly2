@@ -21,9 +21,9 @@ After registration the counts are pushed to the radio: `SetNumEffects(27)`, `Set
 
 `GetCurrentEffect()` (`LedManager.cpp:51-59`): if the current packet is `SET_CONTROL`, returns the `ControlEffect` singleton (held outside both vectors); otherwise dispatches by the packet's effect index. On Arduino, out-of-range indices wrap mod total; on host they assert.
 
-### RunEffect() — the render loop (`LedManager.cpp:76-107`)
+### RunEffect() — the render loop (`LedManager.cpp:76`)
 
-For each strip, for each LED: compute a strip-local `virtual_index` (flipped if `Reversed`), call `GetCurrentEffect()->GetRGB(virtual_index, radio_state->GetNetworkMillis(), strip, packet)`, apply `Dim` (÷8) or `Off` (black), write to a monotonically increasing global index, then `WriteOutLeds()`.
+Resolves the current effect, the set-effect packet, and `GetNetworkMillis()` **once per frame** (so every LED in a frame shares one timestamp), then for each strip, for each LED: compute a strip-local `virtual_index` (flipped if `Reversed`), call `effect->GetRGB(virtual_index, time_ms, strip, packet)`, apply `Dim` (÷8) or `Off` (black), write to a monotonically increasing global index, then `WriteOutLeds()`. Effects bind their palette from `Effect::palettes()` by const reference — never copy a `ColorPalette` in a `GetRGB` path (it heap-allocates per LED per frame).
 
 Division of labor for strip flags:
 
