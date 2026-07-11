@@ -55,7 +55,7 @@ Host builds compile the platform-independent core (`lib/` + `src/generic/`) agai
 ./ci.sh             # what GitHub Actions runs: cmake (no simulator) + smalltests + largetests
 ```
 
-CI also builds the `node` and `fancy-node` PlatformIO envs on every push (not `controller` or `dmx`).
+CI also builds the `node`, `fancy-node`, and `controller` PlatformIO envs on every push (not `dmx`).
 
 **Code reviews**: run major/adversarial code reviews on Claude Sonnet 5 (`claude-sonnet-5`), not larger models — review quality holds and it doesn't burn premium-tier tokens. If you use a review subagent, set its `model:` to `sonnet`.
 
@@ -79,7 +79,7 @@ Per-device layering — main loop is `state_machine.Tick(); led_manager->RunEffe
 - `RunEffect` handles `Reversed`/`Dim`/`Off` centrally; all other strip flags are each effect's responsibility.
 - New effects must pass `EffectsTest`'s fuzz (every palette, 0–255 LEDs, multi-strip Tiny/Circular devices).
 - On the SAMD node, the watchdog timeout is ~128 ms — long blocking work in the loop will reset the board.
-- The web simulator mirrors the firmware: `sim/js/effects/registry.js` must match `LedManager.cpp` registration (order, weights, last-two invariant), and `sim/test/vectors/reference.json` must be regenerated (`vectorgen`) whenever firmware effect rendering changes — the sim test suite fails on drift.
+- The web simulator mirrors the firmware: `sim/js/effects/registry.js` must match `LedManager.cpp` registration (order, weights, last-two invariant), and `sim/test/vectors/reference.json` must be regenerated (`vectorgen`) whenever firmware effect rendering changes — both `ReferenceVectorTest` (host suite) and the sim test suite fail on drift.
 
 ## Spec-Driven Development
 

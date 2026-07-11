@@ -106,9 +106,9 @@
 
 **Purpose**: Documentation of the new suites + end-to-end validation (FR-009, SC-004, SC-005).
 
-- [ ] T028 Update `docs/build-and-test.md`: new suite list (ReferenceVectorTest, render-loop semantics, leaf utils), the wire-path FakeRadio behavior, corpus regeneration remains the single documented command (FR-003); touch `docs/simulator.md`/`docs/index.md` only if they enumerate suites
-- [ ] T029 Re-measure suite wall time vs T002 baseline (SC-005 <+25%); run the full quickstart "Suite-specific runs" block including `./largetests` and `node --test "sim/test/cases/*.test.mjs"`
-- [ ] T030 Commit 5 (docs); after Ben approves merge/push: watch the CI run and verify in the logs that the new suites executed (SC-004/FR-009)
+- [X] T028 Update `docs/build-and-test.md` (suite list, wire-path FakeRadio, bidirectional corpus pin, nlohmann dep, stale controller-CI line), `docs/simulator.md` (shared case model), and `CLAUDE.md` (controller in CI; ReferenceVectorTest fails on corpus drift)
+- [X] T029 Re-measure suite wall time vs T002 baseline — final 23.33 s vs 23.30 s baseline (+0.1%, SC-005 met); largetests 14,400/14,400; sim suite 59/59; lint clean
+- [ ] T030 Commit 5 (docs); merge/push per Ben's goal instruction; watch the CI run and verify in the logs that the new suites executed (SC-004/FR-009)
 
 **Checkpoint**: Feature complete; CI proof captured.
 
