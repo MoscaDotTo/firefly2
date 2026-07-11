@@ -74,9 +74,15 @@ Effect *LedManager::GetEffect(uint8_t index) {
 }
 
 void LedManager::RunEffect() {
+  // Resolve these once per frame: nothing can change them mid-frame (the
+  // main loop is single-threaded), and using one timestamp keeps every LED
+  // in the frame consistent.
+  Effect *const effect = GetCurrentEffect();
+  RadioPacket *const set_effect_packet = radio_state->GetSetEffect();
+  const uint32_t time_ms = radio_state->GetNetworkMillis();
+
   uint8_t global_index = 0;
-  for (auto it = device.strips.begin(); it != device.strips.end(); ++it) {
-    const StripDescription strip = *it;
+  for (const StripDescription &strip : device.strips) {
     for (uint8_t strip_index = 0; strip_index < strip.led_count;
          ++strip_index) {
       uint8_t virtual_index;
@@ -90,9 +96,7 @@ void LedManager::RunEffect() {
       if (strip.FlagEnabled(Off)) {
         rgb = CRGB::Black;
       } else {
-        rgb = GetCurrentEffect()->GetRGB(virtual_index,
-                                         radio_state->GetNetworkMillis(), strip,
-                                         radio_state->GetSetEffect());
+        rgb = effect->GetRGB(virtual_index, time_ms, strip, set_effect_packet);
 
         if (strip.FlagEnabled(Dim)) {
           rgb = rgb / (uint8_t)8;
