@@ -42,10 +42,13 @@ uint32_t RadioPacket::readTimeFromHeartbeat() const {
   assert(this->type == HEARTBEAT);
   assert(this->dataLength == 4);
 #endif
-  uint32_t time = this->data[3];
-  time |= this->data[2] << 8;
-  time |= this->data[1] << 16;
-  time |= this->data[0] << 24;
+  // Cast before shifting: uint8_t promotes to (signed) int, and shifting a
+  // top-bit-set byte into the sign bit is undefined behavior in pre-C++14
+  // language modes (e.g. the SAMD node target's gnu++11); C++14 defines it.
+  uint32_t time = (uint32_t)this->data[3];
+  time |= (uint32_t)this->data[2] << 8;
+  time |= (uint32_t)this->data[1] << 16;
+  time |= (uint32_t)this->data[0] << 24;
   return time;
 }
 

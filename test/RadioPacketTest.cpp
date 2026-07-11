@@ -25,6 +25,20 @@ TEST(RadioPacket, serializesHeartbeatBig) {
   EXPECT_EQ(test, packet.readTimeFromHeartbeat());
 }
 
+TEST(RadioPacket, serializesHeartbeatBoundaryTimes) {
+  // Times with the top bit set exercise the decode's high-byte shift, which
+  // must be well-defined for all 2^32 values in every language mode the
+  // firmware builds under (the SAMD node target uses gnu++11, where an
+  // uncast `byte << 24` shifts into the sign bit of int).
+  const uint32_t times[] = {0, 1, 0x7FFFFFFF, 0x80000000, 0xFFFFFFFF};
+
+  for (uint32_t time : times) {
+    RadioPacket packet;
+    packet.writeHeartbeat(time);
+    EXPECT_EQ(time, packet.readTimeFromHeartbeat());
+  }
+}
+
 // Wire-codec conformance tests. See
 // specs/002-fix-audit-findings/contracts/wire-format.md.
 
