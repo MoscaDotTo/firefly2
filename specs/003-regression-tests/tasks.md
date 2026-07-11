@@ -108,7 +108,7 @@
 
 - [X] T028 Update `docs/build-and-test.md` (suite list, wire-path FakeRadio, bidirectional corpus pin, nlohmann dep, stale controller-CI line), `docs/simulator.md` (shared case model), and `CLAUDE.md` (controller in CI; ReferenceVectorTest fails on corpus drift)
 - [X] T029 Re-measure suite wall time vs T002 baseline — final 23.33 s vs 23.30 s baseline (+0.1%, SC-005 met); largetests 14,400/14,400; sim suite 59/59; lint clean
-- [ ] T030 Commit 5 (docs); merge/push per Ben's goal instruction; watch the CI run and verify in the logs that the new suites executed (SC-004/FR-009)
+- [X] T030 Commit 5 (docs); merged/pushed per Ben's goal instruction. First CI run exposed a real gap — Firefly corpus cases are libc-bound (glibc rand ≠ BSD rand); fixed in follow-up commit dab7e31 (platform-gated, see research.md R7). Final CI on dab7e31: all 4 workflows green; logs show all new suites executing on ubuntu (88 smalltests + 14,400 fuzz PASSED, exactly 72 Firefly skips with loud NOTEs) — SC-004/FR-009 verified
 
 **Checkpoint**: Feature complete; CI proof captured.
 
