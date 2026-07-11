@@ -52,3 +52,11 @@ All decisions below were made after reading the artifacts involved (`test/Vector
 ## R6: Determinism & runtime (FR-010, SC-005)
 
 **Decision**: All new tests use `setMillis()` (fake clock) and the seed-prediction pattern already established by `VectorGenCommon` (`srand(1)` + `random16_set_seed(1337)` before LedManager construction). Baseline suite wall time is measured at implementation start (`make test` on this machine, warm build) and re-measured at the end; the reference comparison is bounded (~1,380 × ~50 LED renders) and expected to add low single-digit seconds.
+
+## R7: Firefly cases are libc-bound (discovered on first CI run, 2026-07-11)
+
+**Finding**: the first CI run of `ReferenceVectorTest` failed on ubuntu — `effectSeedsMatchPrediction` (corpus Firefly seed 423 vs glibc prediction) and 60 of the 72 Firefly cases. Root cause: `FireflyEffect`'s construction offset comes from libc `rand()` after `srand(1)`, and `rand()` is implementation-defined — the committed corpus encodes the macOS/BSD sequence. This was invisible before because nothing on CI compared *firmware* rendering to the corpus (the JS sim hardcodes `DEFAULT_FIREFLY_OFFSET=423` rather than calling `rand()`; docs/simulator.md documents the same non-portability for the JS port).
+
+**Decision**: platform-gate exactly the Firefly comparisons. `effectSeedsMatchPrediction` asserts Fire/Rorschach (FakeFastLED LCG — portable) and reports, without failing, a Firefly seed mismatch; `allCasesMatchFirmwareRendering` skips the Firefly RGB comparison only when the local prediction differs from the recorded seed, counts the skips, asserts the count is exactly the Firefly grid size (4 palettes × 6 times × 3 devices = 72), and prints a NOTE. On the corpus-generating platform all 1,380 cases stay byte-pinned; elsewhere 1,308 are. This narrows FR-001's "every case" to "every case whose inputs are platform-reproducible" — recorded here as a deliberate deviation.
+
+**Alternatives considered**: making `FireflyEffect` seed from `random16` (portable) — the correct long-term fix, but a product-code + corpus + JS-port change, out of this feature's scope (spec: no product changes beyond test doubles); per-platform seed constants in the test (fragile against libc updates); skipping silently (violates the no-silent-caps principle).
