@@ -1,6 +1,6 @@
-# SESSION HANDOFF — 2026-07-11 (ACTIVE)
+# SESSION HANDOFF — 2026-07-11 (RESOLVED: feature 003 implemented, merged, CI-verified same day)
 
-> For a fresh Claude with ZERO context. Read this before doing anything.
+> Historical. Feature 003 is COMPLETE: all 30 tasks in [tasks.md](tasks.md) done, 7 commits (dcc6101..5bab022) merged to master and pushed, all four CI workflows green at tip, SC-001/002/003 break-demonstrations recorded in the commit messages. One discovery during landing: the 72 Firefly corpus cases are libc-bound (glibc rand ≠ BSD rand) — platform-gated in dab7e31, rationale in [research.md](research.md) R7; the clean long-term fix (seed Firefly from random16) is a possible future feature. Still NOT proven on hardware: 002's D7 controller fix and D1 multi-hop over real radios. The original handoff below is kept for context.
 
 **START HERE**: this file (plan below), then [spec.md](spec.md), then [research.md](research.md) — then `docs/index.md` + `CLAUDE.md` if you don't know the codebase.
 
