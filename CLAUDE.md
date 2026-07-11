@@ -57,6 +57,8 @@ Host builds compile the platform-independent core (`lib/` + `src/generic/`) agai
 
 CI also builds the `node` and `fancy-node` PlatformIO envs on every push (not `controller` or `dmx`).
 
+**Code reviews**: run major/adversarial code reviews on Claude Sonnet 5 (`claude-sonnet-5`), not larger models — review quality holds and it doesn't burn premium-tier tokens. If you use a review subagent, set its `model:` to `sonnet`.
+
 ## Architecture (short version)
 
 Per-device layering — main loop is `state_machine.Tick(); led_manager->RunEffect();`:
