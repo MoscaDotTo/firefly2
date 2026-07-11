@@ -76,11 +76,11 @@
 
 **Independent Test**: SC-003 — break each of Off/Dim/Reversed in `RunEffect` separately; at least one named LedManagerTest failure per flag; revert each; green.
 
-- [ ] T018 [US3] Read `test/LedManagerTest.cpp`, `lib/led_manager/LedManager.cpp` (`RunEffect`), and `lib/fake-led-manager/FakeLedManager.hpp` hooks (`ClearEffects`, `PublicAddEffect`, `GetLed`) to confirm the R3 design maps onto current code
-- [ ] T019 [US3] Extend `test/LedManagerTest.cpp` with a deterministic stub effect (`color = f(led_index)`) and table-driven cases: (a) four-strip device [plain, Off, Dim, Reversed] asserting each strip against the plain control strip (black / control÷8 / index-flipped); (b) multi-strip global indexing — contiguous offsets, no overlap/gap; (c) Dim+Reversed combined; (d) SET_CONTROL override via the state machine — all non-Off LEDs show commanded color, then override expires/replaced and effect rendering resumes
-- [ ] T020 [US3] Run full gate (host-only)
-- [ ] T021 [US3] Perform SC-003 break-demonstrations, one flag at a time in `lib/led_manager/LedManager.cpp`: skip Off-black → named failure; skip Dim ÷8 → named failure; skip Reversed flip → named failure; revert each; green. Save outputs for the commit message
-- [ ] T022 [US3] Self-review the diff; commit 3 with all three SC-003 demonstrations recorded in the commit message
+- [X] T018 [US3] Read `test/LedManagerTest.cpp`, `lib/led_manager/LedManager.cpp` (`RunEffect`), and `lib/fake-led-manager/FakeLedManager.hpp` hooks (`ClearEffects`, `PublicAddEffect`, `GetLed`) to confirm the R3 design maps onto current code
+- [X] T019 [US3] Extend `test/LedManagerTest.cpp` with a deterministic stub effect (`color = f(led_index)`) and table-driven cases: (a) four-strip device [plain, Off, Dim, Reversed] asserting each strip against the plain control strip (black / control÷8 / index-flipped); (b) multi-strip global indexing — contiguous offsets, no overlap/gap; (c) Dim+Reversed combined; (d) SET_CONTROL override via the state machine — all non-Off LEDs show commanded color, then override expires/replaced and effect rendering resumes
+- [X] T020 [US3] Run full gate (host-only) — green, 24.8 s
+- [X] T021 [US3] Perform SC-003 break-demonstrations: Off skipped → 2 failures; Dim skipped → 2 failures; Reversed skipped → 3 failures (incl. pre-existing callStripInReverse); each reverted → green
+- [X] T022 [US3] Self-review the diff; commit 3 with all three SC-003 demonstrations recorded in the commit message
 
 **Checkpoint**: The documented "RunEffect handles Reversed/Dim/Off centrally" invariant is executable.
 
