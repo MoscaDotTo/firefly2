@@ -7,3 +7,4 @@ assembly/*.zip
 
 
 **/.claude/settings.local.json
+node_modules/

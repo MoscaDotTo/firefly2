@@ -24,6 +24,16 @@ pio device monitor               # 115200 baud
 
 Each env compiles one `src/devices/<target>/` folder plus shared `src/arduino` + `src/generic`. `range_test`, `remote`, and `trellis` envs are commented out (trellis uses an obsolete API and no longer compiles). Note: `[env:node]`'s bossac `platform_packages` entry is OS-specific — uncomment the right one for your OS (`node-arm64` is the Apple-silicon variant). See [docs/build-and-test.md](docs/build-and-test.md) for every env's pins, flags, and pinned library forks.
 
+### Web simulator (browser, no hardware)
+
+```bash
+python3 -m http.server 8642 -d sim        # then open http://localhost:8642/
+node --test "sim/test/cases/*.test.mjs"   # headless suite (or: npm test)
+npm ci && npm run lint                    # ESLint over sim/ (dev-only dep)
+```
+
+`sim/` is a zero-dependency JS port of the effect engine for testing shows and protocol behavior without hardware — drivable via `window.sim`, byte-exact against firmware via committed reference vectors (`vectorgen` CMake target regenerates them). See [docs/simulator.md](docs/simulator.md). When you change a firmware effect, regenerate vectors and update the matching `sim/js/effects/` port.
+
 ### CMake (host tests)
 
 ```bash
@@ -67,6 +77,7 @@ Per-device layering — main loop is `state_machine.Tick(); led_manager->RunEffe
 - `RunEffect` handles `Reversed`/`Dim`/`Off` centrally; all other strip flags are each effect's responsibility.
 - New effects must pass `EffectsTest`'s fuzz (every palette, 0–255 LEDs, multi-strip Tiny/Circular devices).
 - On the SAMD node, the watchdog timeout is ~128 ms — long blocking work in the loop will reset the board.
+- The web simulator mirrors the firmware: `sim/js/effects/registry.js` must match `LedManager.cpp` registration (order, weights, last-two invariant), and `sim/test/vectors/reference.json` must be regenerated (`vectorgen`) whenever firmware effect rendering changes — the sim test suite fails on drift.
 
 ## Spec-Driven Development
 

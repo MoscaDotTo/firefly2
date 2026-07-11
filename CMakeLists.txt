@@ -84,11 +84,13 @@ enable_testing()
 
 file(GLOB TEST_LIB "test/*.cpp" "test/*.hpp")
 list(FILTER TEST_LIB EXCLUDE REGEX ".*Test\\.[ch]pp$")
+list(FILTER TEST_LIB EXCLUDE REGEX ".*VectorGen\\.cpp$")
 add_library(testlib ${TEST_LIB})
 target_link_libraries(testlib generic fake-fast-led)
 
 file(GLOB SMALLTEST_SOURCES "test/*.cpp" "test/*.hpp")
 list(FILTER SMALLTEST_SOURCES EXCLUDE REGEX ".*InvalidPacketTest\\.[ch]pp$")
+list(FILTER SMALLTEST_SOURCES EXCLUDE REGEX ".*VectorGen\\.cpp$")
 add_executable(smalltests ${SMALLTEST_SOURCES})
 target_link_libraries(smalltests generic gmock_main gtest fake-fast-led testlib)
 add_test(smalltests smalltests)
@@ -96,3 +98,10 @@ add_test(smalltests smalltests)
 add_executable(largetests "test/InvalidPacketTest.cpp")
 target_link_libraries(largetests generic gmock_main gtest fake-fast-led testlib)
 add_test(largetests largetests)
+
+# Renders firmware effects through the host-test fakes and prints reference
+# vectors as JSON to stdout - the fidelity ground truth for the JS simulator
+# port. Not part of smalltests/largetests; see
+# specs/001-web-simulator/contracts/reference-vectors.md.
+add_executable(vectorgen "test/VectorGen.cpp")
+target_link_libraries(vectorgen generic fake-fast-led)
