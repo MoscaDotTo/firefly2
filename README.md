@@ -1,5 +1,15 @@
 # Firefly2
 
+## Web simulator (test without hardware)
+
+```bash
+python3 -m http.server 8642 -d sim
+# open http://localhost:8642/
+```
+
+A zero-dependency browser simulator of the whole system: every effect and palette on the real device catalog, synced to a scrubbable network clock, with master-mode autoplay and control overrides. Byte-exact against the firmware (enforced by tests: `npm test`). See [docs/simulator.md](docs/simulator.md).
+
+
 ## Programming
 
 The `fancy-node` device can be programmed either using an STLink, or via USB port. To program via USB, you must first install [stm32loader] using pip (`pip install stm32loader`). You may also need to pass the port (typically `/dev/ttyUSB0`), e.g. `pio run -e fancy-node-usb -t upload --upload-port /dev/ttyUSB0`.

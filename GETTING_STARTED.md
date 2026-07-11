@@ -2,6 +2,8 @@
 
 This document provides an overview of the Firefly2 system for new engineers joining the project.
 
+> **Tip:** you can explore the whole system without any hardware — the browser simulator (`python3 -m http.server 8642 -d sim`, see [docs/simulator.md](docs/simulator.md)) runs every effect on every device layout, in sync, straight from this repo.
+
 ## What is Firefly2?
 
 Firefly2 is an LED control system designed for Burning Man art installations. It enables synchronized light effects across multiple devices (bikes, costumes, art pieces) using wireless communication. The system consists of hardware designs and firmware that work together to create coordinated light shows.
