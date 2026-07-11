@@ -92,11 +92,11 @@
 
 **Independent Test**: Each new test fails if its target's edge behavior changes; no latent defect gets "fixed".
 
-- [ ] T023 [P] [US4] Write `test/DeviceDescriptionTest.cpp`: `GetLedCount` for zero/one/many strips; pin the uint8_t return-width ceiling as documented current behavior (comment + boundary assertion; do NOT fix)
-- [ ] T024 [P] [US4] Write `test/BatteryTest.cpp`: `BatteryVoltageToRawReading` monotonicity + round-trip within one quantization step at `kBatteryEmpty`/`kBatteryFull`/midpoints; add `lib/battery` include dir for host tests in `CMakeLists.txt`
-- [ ] T025 [P] [US4] Extend `test/ColorPaletteTest.cpp` (table-driven): gradient at exact color boundaries, wrap vs no-wrap, single-color palette, position 0/max; palette-registry boundary test — `Effect::palettes().size()` equals the corpus wire-table constant, every valid index renders; OOB hazard documented in a comment referencing the 002 review, not executed
-- [ ] T026 [US4] Run full gate (host-only; `lib/battery` is header-only so no firmware rebuild needed, but CMake change → re-run cmake); confirm new files auto-globbed into smalltests (check `ctest`/gtest listing)
-- [ ] T027 [US4] Self-review the diff; commit 4
+- [X] T023 [P] [US4] Write `test/DeviceDescriptionTest.cpp`: `GetLedCount` for zero/one/many strips; pin the uint8_t return-width ceiling as documented current behavior (comment + boundary assertion; do NOT fix)
+- [X] T024 [P] [US4] Write `test/BatteryTest.cpp`: `BatteryVoltageToRawReading` monotonicity + round-trip within one quantization step at `kBatteryEmpty`/`kBatteryFull`/midpoint; add `lib/battery` include dir for host tests in `CMakeLists.txt`
+- [X] T025 [P] [US4] Extend `test/ColorPaletteTest.cpp`: empty palette → black, single-color palette everywhere, exact color boundaries + wrap-around at max; palette-registry boundary — `Effect::palettes().size() == 22`, no empty palettes; OOB hazard documented (not executed, it is UB)
+- [X] T026 [US4] Run full gate — green, 88 smalltests total, 24.7 s (+5.8% vs baseline)
+- [X] T027 [US4] Self-review the diff; commit 4
 
 **Checkpoint**: All four gaps closed; suite complete.
 
