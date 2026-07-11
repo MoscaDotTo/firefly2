@@ -26,6 +26,15 @@ FetchContent_Declare(fake-fast-led
 )
 FetchContent_MakeAvailable(fake-fast-led)
 
+# JSON parser for ReferenceVectorTest's reference-corpus comparison. Pinned
+# tag; linked into the test targets only.
+FetchContent_Declare(nlohmann_json
+                 GIT_REPOSITORY      https://github.com/nlohmann/json.git
+                 GIT_TAG             v3.11.3
+                 GIT_SHALLOW         TRUE
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 # -fno-sanitize-recover makes UBSan findings abort (and so fail the test run)
 # instead of print-and-continue; without it the sanitizer is advisory-only.
 set(SANITIZER_FLAGS
@@ -85,6 +94,11 @@ endif(BUILD_SIMULATOR)
 
 enable_testing()
 
+# Shared non-Test sources (FakeNetwork, VectorGenCommon) land both here and,
+# via the glob below, directly in smalltests. That duplication is benign only
+# because the linker prefers smalltests' own objects and never extracts the
+# testlib archive copies - do not convert testlib to SHARED or add
+# --whole-archive without deduplicating.
 file(GLOB TEST_LIB "test/*.cpp" "test/*.hpp")
 list(FILTER TEST_LIB EXCLUDE REGEX ".*Test\\.[ch]pp$")
 list(FILTER TEST_LIB EXCLUDE REGEX ".*VectorGen\\.cpp$")
@@ -95,7 +109,11 @@ file(GLOB SMALLTEST_SOURCES "test/*.cpp" "test/*.hpp")
 list(FILTER SMALLTEST_SOURCES EXCLUDE REGEX ".*InvalidPacketTest\\.[ch]pp$")
 list(FILTER SMALLTEST_SOURCES EXCLUDE REGEX ".*VectorGen\\.cpp$")
 add_executable(smalltests ${SMALLTEST_SOURCES})
-target_link_libraries(smalltests generic gmock_main gtest fake-fast-led testlib)
+target_link_libraries(smalltests generic gmock_main gtest fake-fast-led testlib
+                      nlohmann_json::nlohmann_json)
+# Lets ReferenceVectorTest locate the committed corpus from any build dir.
+target_compile_definitions(smalltests PRIVATE
+  REFERENCE_VECTORS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/sim/test/vectors/reference.json")
 add_test(smalltests smalltests)
 
 add_executable(largetests "test/InvalidPacketTest.cpp")
@@ -106,5 +124,5 @@ add_test(largetests largetests)
 # vectors as JSON to stdout - the fidelity ground truth for the JS simulator
 # port. Not part of smalltests/largetests; see
 # specs/001-web-simulator/contracts/reference-vectors.md.
-add_executable(vectorgen "test/VectorGen.cpp")
+add_executable(vectorgen "test/VectorGen.cpp" "test/VectorGenCommon.cpp")
 target_link_libraries(vectorgen generic fake-fast-led)

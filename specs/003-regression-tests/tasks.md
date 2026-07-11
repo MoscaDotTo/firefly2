@@ -18,8 +18,8 @@
 
 **Purpose**: Record the SC-005 baseline and confirm a clean start.
 
-- [ ] T001 Verify worktree clean and current with master; confirm remote CI green for the latest master push (`gh run list`)
-- [ ] T002 Build host suite warm and record SC-005 baseline wall time: `cd build && cmake .. -DBUILD_SIMULATOR=false && make -j8 && time make test` — record the number in this file next to this task when done
+- [X] T001 Verify worktree clean and current with master; confirm remote CI green for the latest master push (`gh run list`) — all 4 workflows green on master@0717e0e
+- [X] T002 Build host suite warm and record SC-005 baseline wall time: `cd build && cmake .. -DBUILD_SIMULATOR=false && make -j8 && time make test` — **baseline: 23.30 s** (budget < ~29.1 s)
 
 **Checkpoint**: Baseline recorded; all 69 tests green before any change.
 
@@ -39,12 +39,12 @@
 
 **Independent Test**: SC-002 — re-introduce the D1 defect (comment out the `dataLength` assignment in `Deserialize`); ≥ 5 existing non-codec tests fail; revert; green.
 
-- [ ] T003 [US2] Read `lib/fake-radio/FakeRadio.{hpp,cpp}`, `lib/radio/` codec API, and `test/FakeNetwork.cpp`'s use of `getSentPacket`/`setReceivedPacket` to confirm the R2 design maps onto current code
-- [ ] T004 [US2] Implement wire-path send in `lib/fake-radio/FakeRadio.{hpp,cpp}`: `sendPacket` serializes into an internal wire buffer (`uint8_t[61]` + length) via `RadioPacket::Serialize`; `getSentPacket` deserializes via `RadioPacket::Deserialize`, returning `nullptr` on rejection; `setReceivedPacket`/`readPacket` raw-struct path unchanged (FR-005)
-- [ ] T005 [US2] Run full gate incl. `pio run -e node-arm64 -e fancy-node` (touches `lib/`); entire pre-existing suite must pass unchanged (codec transparent for valid traffic) and `./largetests` fuzz must stay green
-- [ ] T006 [US2] Perform SC-002 break-demonstration: re-introduce D1 in `lib/radio` `Deserialize` (skip `dataLength` population) → `./smalltests` → record the ≥ 5 failing non-codec test names → revert → green. Save the failure list for the commit message
-- [ ] T007 [US2] Launch **verifier** agent on the diff (shared test infra all suites depend on); address findings
-- [ ] T008 [US2] Commit 1 with SC-002 demonstration recorded in the commit message
+- [X] T003 [US2] Read `lib/fake-radio/FakeRadio.{hpp,cpp}`, `lib/radio/` codec API, and `test/FakeNetwork.cpp`'s use of `getSentPacket`/`setReceivedPacket` to confirm the R2 design maps onto current code
+- [X] T004 [US2] Implement wire-path send in `lib/fake-radio/FakeRadio.{hpp,cpp}`: `sendPacket` serializes into an internal wire buffer (`uint8_t[61]` + length) via `RadioPacket::Serialize`; `getSentPacket` deserializes via `RadioPacket::Deserialize`, returning `nullptr` on rejection; `setReceivedPacket`/`readPacket` raw-struct path unchanged (FR-005)
+- [X] T005 [US2] Run full gate incl. `pio run -e node-arm64 -e fancy-node` (touches `lib/`); entire pre-existing suite must pass unchanged (codec transparent for valid traffic) and `./largetests` fuzz must stay green
+- [X] T006 [US2] Perform SC-002 break-demonstration: re-introduce D1 in `lib/radio` `Deserialize` (skip `dataLength` population) → `./smalltests` → record the ≥ 5 failing non-codec test names → revert → green — **11 non-codec failures** (see commit dcc6101)
+- [X] T007 [US2] Launch **verifier** agent on the diff (shared test infra all suites depend on); address findings — no findings survived
+- [X] T008 [US2] Commit 1 with SC-002 demonstration recorded in the commit message — dcc6101
 
 **Checkpoint**: All existing suites now structurally cover the wire codec.
 
@@ -56,15 +56,15 @@
 
 **Independent Test**: SC-001 — perturb one constant in a covered effect's math; `ReferenceVectorTest` fails naming the case; revert; green. Plus: regenerated corpus byte-identical pre/post refactor (only `firmwareGitDescribe` may differ).
 
-- [ ] T009 [US1] Read `test/VectorGen.cpp` (503 lines) and the corpus schema (`specs/001-web-simulator/contracts/reference-vectors.md`); snapshot current generator output: `make vectorgen && ./vectorgen > /tmp/ref-before.json`
-- [ ] T010 [US1] Extract shared case model into `test/VectorGenCommon.hpp` + `test/VectorGenCommon.cpp`: seed prediction (`PredictEffectSeedsAndResetPrngs`), effect/palette wire tables, three-device catalog, `RenderCase(case) -> vector<CRGB>`; shrink `test/VectorGen.cpp` to `main()` + JSON emission. Filename deliberately avoids the `.*VectorGen\.cpp$` glob exclusion so `VectorGenCommon.cpp` lands in testlib
-- [ ] T011 [US1] Verify extraction is output-identical: `make vectorgen && ./vectorgen > /tmp/ref-after.json && diff /tmp/ref-before.json /tmp/ref-after.json` — must be byte-identical (same git state, so even `firmwareGitDescribe` matches)
-- [ ] T012 [US1] Add nlohmann/json to `CMakeLists.txt` via FetchContent (pinned tag, linked into test targets only) and define `REFERENCE_VECTORS_PATH` compile definition from `${CMAKE_CURRENT_SOURCE_DIR}` for the test
-- [ ] T013 [US1] Write `test/ReferenceVectorTest.cpp`: hard-fail if corpus missing/unparseable (FR-002); validate `meta.effectSeeds` against `VectorGenCommon` prediction; validate `effects[]`/`palettes[]` tables against live registry (order, size, last-two invariant) and `Effect::palettes()`; re-render all 1,380 `cases[]` and compare RGB byte-exact with failure messages naming case id/effect/device/LED index/expected/actual; re-evaluate `primitives` against FakeFastLED; ignore `firmwareGitDescribe`
-- [ ] T014 [US1] Run full gate (host-only; no `lib/` change) and check suite wall time against the T002 baseline (SC-005 budget +<25%)
-- [ ] T015 [US1] Perform SC-001 break-demonstration: perturb one constant in a covered effect (e.g. RainbowEffect hue step) → `./smalltests --gtest_filter='ReferenceVector*'` → record named failing case → revert → green. Save output for the commit message
-- [ ] T016 [US1] Launch **verifier** agent on the diff (generator refactor must be provably output-identical + new dependency); address findings
-- [ ] T017 [US1] Commit 2 with SC-001 demonstration and byte-identical-corpus evidence recorded in the commit message
+- [X] T009 [US1] Read `test/VectorGen.cpp` (503 lines) and the corpus schema (`specs/001-web-simulator/contracts/reference-vectors.md`); snapshot current generator output: `make vectorgen && ./vectorgen > /tmp/ref-before.json`
+- [X] T010 [US1] Extract shared case model into `test/VectorGenCommon.hpp` + `test/VectorGenCommon.cpp`: seed prediction (`PredictEffectSeedsAndResetPrngs`), effect/palette wire tables, three-device catalog, `ForEachCase` case enumeration; shrink `test/VectorGen.cpp` to `main()` + JSON emission. Filename deliberately avoids the `.*VectorGen\.cpp$` glob exclusion so `VectorGenCommon.cpp` lands in testlib
+- [X] T011 [US1] Verify extraction is output-identical: byte-identical pre/post refactor, and matches the committed corpus modulo `firmwareGitDescribe`
+- [X] T012 [US1] Add nlohmann/json to `CMakeLists.txt` via FetchContent (pinned v3.11.3, test targets only) and define `REFERENCE_VECTORS_PATH` compile definition from `${CMAKE_CURRENT_SOURCE_DIR}` for the test
+- [X] T013 [US1] Write `test/ReferenceVectorTest.cpp`: hard-fail if corpus missing/unparseable (FR-002); validate `meta.effectSeeds` against `VectorGenCommon` prediction; validate `effects[]`/`palettes[]` tables against live registry (order, size, last-two invariant) and `Effect::palettes()`; re-render all 1,380 `cases[]` and compare RGB byte-exact with failure messages naming case id/effect/device/LED index/expected/actual; re-evaluate `primitives` against FakeFastLED; ignore `firmwareGitDescribe`
+- [X] T014 [US1] Run full gate (host-only; no `lib/` change) — suite 23.8 s vs 23.3 s baseline (+2.1%, SC-005 OK)
+- [X] T015 [US1] Perform SC-001 break-demonstration: RainbowEffect hue step 8→9 → named per-case failures → revert → green
+- [X] T016 [US1] Launch **verifier** agent on the diff; one non-blocking finding (VectorGenCommon compiled into 3 targets, pre-existing testlib/smalltests glob-overlap pattern) — addressed with a CMake comment
+- [X] T017 [US1] Commit 2 with SC-001 demonstration and byte-identical-corpus evidence recorded in the commit message
 
 **Checkpoint**: Rendered output is bidirectionally pinned (firmware ↔ corpus ↔ sim).
 
