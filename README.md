@@ -2,7 +2,7 @@
 
 Wireless LED control for Burning Man art installations, bikes, and wearables. Devices driving WS2812 strips self-organize over 915 MHz RFM69 radios into a flood mesh with exactly one master, share a network clock via heartbeats, and render effects as pure functions of network time — so every device animates in sync without streaming frames.
 
-New to the project? Start with [GETTING_STARTED.md](GETTING_STARTED.md). Working in the code (human or agent)? The mental model lives in [docs/index.md](docs/index.md) and the ground rules in [CLAUDE.md](CLAUDE.md).
+New to the project? Start with [GETTING_STARTED.md](GETTING_STARTED.md). Working in the code (human or agent)? The mental model lives in [docs/index.md](docs/index.md) and the shared Claude Code/Codex ground rules in [CLAUDE.md](CLAUDE.md).
 
 ## Web simulator (test without hardware)
 
@@ -75,6 +75,7 @@ CI (GitHub Actions, on every push): host tests, lint, `node`/`fancy-node`/`contr
 
 ## For agents & contributors
 
-- [CLAUDE.md](CLAUDE.md) — build commands, architecture summary, and the **invariants you must not break** (wire-format limits, effect-registry ordering, watchdog timing, fuzz-tolerance rules).
+- [CLAUDE.md](CLAUDE.md) — the canonical guidance for Claude Code and Codex, including build commands, architecture, and the **invariants you must not break**. Codex reaches the same file through `AGENTS.md`; shared skills remain canonical under `.claude/skills/` and are exposed to Codex through `.agents/skills/`.
 - [docs/](docs/index.md) — per-subsystem research notes (radio/network, LED/effects, devices, build/test, hardware). Update them when you change documented behavior.
-- Substantial features go through the spec-kit workflow (`/speckit-specify` → `plan` → `tasks` → `implement`); specs live in `specs/`.
+- Substantial features go through the spec-kit workflow (`speckit-specify` → `plan` →
+  `tasks` → `implement`; use `/` in Claude Code or `$` in Codex); specs live in `specs/`.

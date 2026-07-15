@@ -7,4 +7,6 @@ assembly/*.zip
 
 
 **/.claude/settings.local.json
+.claude/agents/
+.claude/worktrees/
 node_modules/

@@ -1,6 +1,32 @@
-# CLAUDE.md
+# Shared Agent Guidance
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This is the canonical repository guidance for both Claude Code and Codex. Claude Code loads
+`CLAUDE.md` directly; Codex loads the `AGENTS.md` symlink that points here.
+
+Repository skills also have one source of truth: author and update them only under
+`.claude/skills/`. Codex discovers those same directories through the `.agents/skills`
+links. Do not replace either bridge with copied files. Invoke a skill with the syntax for the
+active tool (for example, `/speckit-plan` in Claude Code or `$speckit-plan` in Codex).
+
+## Delegation Agents
+
+Claude Code templates live in `.claude/agents-available/`; Codex roles live in
+`.codex/agents/`. See [`.agents/README.md`](.agents/README.md) for setup details and the
+model mapping.
+
+Delegate proactively only when a bounded task has enough exploration, context isolation,
+or parallelism benefit to repay the coordination cost:
+
+- `explore`: broad, read-only repository exploration.
+- `scout`: one focused lookup or concise source-backed summary.
+- `mech-executor`: fully specified mechanical edits after every substantive decision has
+  already been made.
+
+Keep small or sequential tasks in the parent session. Never delegate architecture,
+protocol or hardware invariants, safety/reliability judgment, ambiguous implementation
+choices, or final synthesis and review. Use direct children only and at most four active
+threads. For Codex, keep hard judgment on Sol at high/xhigh effort; Terra and Luna workers
+exist to keep that main context clean, not to create fan-out by default.
 
 ## Project Overview
 
@@ -57,7 +83,9 @@ Host builds compile the platform-independent core (`lib/` + `src/generic/`) agai
 
 CI also builds the `node`, `fancy-node`, and `controller` PlatformIO envs on every push (not `dmx`).
 
-**Code reviews**: run major/adversarial code reviews on Claude Sonnet 5 (`claude-sonnet-5`), not larger models — review quality holds and it doesn't burn premium-tier tokens. If you use a review subagent, set its `model:` to `sonnet`.
+**Code reviews**: in Claude Code, run major/adversarial code reviews on Claude Sonnet 5
+(`claude-sonnet-5`) rather than a larger model. In Codex, keep final review in the parent Sol
+session at high/xhigh effort; do not delegate it to a Terra/Luna worker.
 
 ## Architecture (short version)
 
@@ -83,4 +111,9 @@ Per-device layering — main loop is `state_machine.Tick(); led_manager->RunEffe
 
 ## Spec-Driven Development
 
-Spec-kit is installed (`.specify/` + `.claude/skills/speckit-*`). For substantial features, use the speckit workflow: `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement` (optionally `/speckit-clarify` before planning and `/speckit-analyze` before implementing). Project principles, if established, live in `.specify/memory/constitution.md`.
+Spec-kit is installed (`.specify/` + canonical `.claude/skills/speckit-*`, linked into
+Codex). For substantial features, use the speckit workflow: `speckit-specify` →
+`speckit-plan` → `speckit-tasks` → `speckit-implement` (optionally `speckit-clarify` before
+planning and `speckit-analyze` before implementing). Invoke names with `/` in Claude Code or
+`$` in Codex. Project principles, if established, live in
+`.specify/memory/constitution.md`.
