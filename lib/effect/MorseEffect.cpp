@@ -64,7 +64,7 @@ CRGB MorseEffect::GetRGB(uint8_t led_index, uint32_t time_ms,
     return {0, 0, 0};
   }
 
-  ColorPalette palette =
+  const ColorPalette &palette =
       palettes()[setEffectPacket->readPaletteIndexFromSetEffect()];
   // Walk through the palette as the message progresses.
   CHSV color = palette.GetGradient((index * MAX_UINT16) / num_units);
