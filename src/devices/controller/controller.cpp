@@ -176,7 +176,7 @@ void RunEffectMode() {
 
   if (right_buttons[0].Rose()) {
     SetRightButtonLeds(kButtonPressedBrightness, kButtonActiveBrightness, 0);
-  } else if (left_buttons[1].Rose()) {
+  } else if (right_buttons[1].Rose()) {
     SetRightButtonLeds(kButtonActiveBrightness, kButtonPressedBrightness, 0);
   } else {
     SetRightButtonLeds(kButtonActiveBrightness, kButtonActiveBrightness, 0);
@@ -264,10 +264,10 @@ void RunColorMode() {
   if (right_buttons[0].Rose()) {
     SetRightButtonLeds(kButtonPressedBrightness, kButtonActiveBrightness,
                        kButtonActiveBrightness);
-  } else if (left_buttons[1].Rose()) {
+  } else if (right_buttons[1].Rose()) {
     SetRightButtonLeds(kButtonActiveBrightness, kButtonPressedBrightness,
                        kButtonActiveBrightness);
-  } else if (left_buttons[2].Rose()) {
+  } else if (right_buttons[2].Rose()) {
     SetRightButtonLeds(kButtonActiveBrightness, kButtonActiveBrightness,
                        kButtonPressedBrightness);
   } else {
