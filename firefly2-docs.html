@@ -1,0 +1,775 @@
+<title>Firefly2 — System Documentation</title>
+<style>
+  :root {
+    --night: #0c101d;
+    --night-2: #121729;
+    --panel: #171d33;
+    --panel-2: #1d2440;
+    --line: #2a3253;
+    --ink: #e9ebf5;
+    --muted: #98a0bd;
+    --faint: #6b7395;
+    --glow: #ffc76a;       /* firefly amber — master, accents */
+    --glow-dim: #b98a3f;
+    --teal: #6fd8c9;       /* slave / radio-layer secondary */
+    --rose: #e58a9d;       /* warnings / sharp edges */
+    --mono: "Cascadia Code", "JetBrains Mono", Consolas, "SF Mono", monospace;
+    --serif: "Palatino Linotype", Palatino, "Iowan Old Style", Georgia, serif;
+    --sans: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0;
+    background: var(--night);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+  }
+  a { color: var(--teal); text-decoration: none; }
+  a:hover, a:focus-visible { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+
+  .layout { display: flex; min-height: 100vh; }
+
+  /* ---------- Sidebar ---------- */
+  nav.side {
+    width: 240px;
+    flex: 0 0 240px;
+    background: var(--night-2);
+    border-right: 1px solid var(--line);
+    padding: 28px 0 24px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .side .brand {
+    font-family: var(--serif);
+    font-size: 21px;
+    letter-spacing: 0.04em;
+    padding: 0 24px 4px;
+    color: var(--glow);
+  }
+  .side .brand small { display: block; font-family: var(--sans); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); margin-top: 2px; }
+  .side ol { list-style: none; margin: 20px 0 0; padding: 0; }
+  .side li a {
+    display: block;
+    padding: 7px 24px;
+    color: var(--muted);
+    font-size: 13.5px;
+    border-left: 2px solid transparent;
+  }
+  .side li a:hover { color: var(--ink); text-decoration: none; }
+  .side li a.active { color: var(--glow); border-left-color: var(--glow); background: rgba(255, 199, 106, 0.05); }
+  .side .navgroup { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--faint); padding: 18px 24px 4px; }
+  .side .meta { padding: 22px 24px 0; font-size: 11.5px; color: var(--faint); font-family: var(--mono); }
+
+  /* ---------- Main ---------- */
+  main { flex: 1; min-width: 0; }
+  .content { max-width: 860px; margin: 0 auto; padding: 0 40px 120px; }
+
+  header.hero {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    background: radial-gradient(120% 90% at 70% 10%, #1a2140 0%, var(--night) 62%);
+  }
+  header.hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero-inner { position: relative; max-width: 860px; margin: 0 auto; padding: 92px 40px 66px; }
+  .hero-inner .eyebrow { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal); margin-bottom: 14px; }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(34px, 5vw, 52px);
+    line-height: 1.12;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  h1 em { font-style: italic; color: var(--glow); }
+  .hero-inner p.lede { font-size: 18px; color: var(--muted); max-width: 60ch; margin: 0 0 30px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 10px; }
+  .stat {
+    border: 1px solid var(--line);
+    background: rgba(23, 29, 51, 0.7);
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .stat b { display: block; font-family: var(--mono); font-size: 17px; color: var(--ink); font-weight: 600; }
+
+  section { padding-top: 64px; }
+  .eyebrow { font-size: 11.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal); margin: 0 0 6px; }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 30px;
+    margin: 0 0 16px;
+    text-wrap: balance;
+  }
+  h3 { font-size: 17px; margin: 34px 0 10px; font-weight: 600; }
+  p, ul.prose li { color: #c6cbde; max-width: 68ch; }
+  ul.prose { padding-left: 22px; }
+  section > p:first-of-type { color: #d5d9e8; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: #ffd89a;
+  }
+  pre {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    color: #d5d9e8;
+  }
+  pre code { background: none; border: none; padding: 0; color: inherit; }
+  pre .c { color: var(--faint); }
+  pre .k { color: var(--teal); }
+  pre .s { color: var(--glow); }
+
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; margin: 14px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th {
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 600;
+    padding: 10px 14px;
+    background: var(--night-2);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  td { padding: 9px 14px; border-bottom: 1px solid rgba(42, 50, 83, 0.55); vertical-align: top; color: #c6cbde; }
+  tr:last-child td { border-bottom: none; }
+  td.mono, span.mono { font-family: var(--mono); font-size: 12.5px; color: var(--ink); }
+  td .num { font-variant-numeric: tabular-nums; font-family: var(--mono); }
+
+  .callout {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--glow);
+    background: var(--panel);
+    border-radius: 0 6px 6px 0;
+    padding: 14px 18px;
+    margin: 18px 0;
+    font-size: 14.5px;
+    color: #c6cbde;
+    max-width: none;
+  }
+  .callout.warn { border-left-color: var(--rose); }
+  .callout b:first-child { color: var(--ink); }
+
+  /* ---------- Diagrams ---------- */
+  .diagram { border: 1px solid var(--line); border-radius: 6px; background: var(--night-2); padding: 24px; margin: 18px 0; overflow-x: auto; }
+  .diagram .cap { font-size: 12px; color: var(--faint); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 16px; }
+
+  .stack { display: grid; gap: 8px; min-width: 540px; }
+  .layer { display: grid; grid-template-columns: 150px 1fr; gap: 8px; align-items: stretch; }
+  .layer .role { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); display: flex; align-items: center; }
+  .cells { display: flex; gap: 8px; flex: 1; }
+  .cell {
+    flex: 1;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 4px;
+    padding: 9px 12px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink);
+    text-align: center;
+  }
+  .cell small { display: block; font-family: var(--sans); color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .cell.hw { border-style: dashed; color: var(--teal); }
+  .cell.hi { border-color: var(--glow-dim); color: var(--glow); }
+
+  .bytes { display: flex; min-width: 560px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .byte { padding: 10px 12px; border-right: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; text-align: center; background: var(--panel); }
+  .byte:last-child { border-right: none; }
+  .byte b { display: block; font-size: 13px; color: var(--glow); font-weight: 600; }
+  .byte small { display: block; font-family: var(--sans); color: var(--faint); font-size: 10.5px; margin-top: 3px; }
+  .byte.data { flex: 1; background: rgba(111, 216, 201, 0.06); }
+  .byte.data b { color: var(--teal); }
+
+  .statebox { display: flex; align-items: center; gap: 0; min-width: 560px; }
+  .state {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 22px;
+    background: var(--panel);
+    min-width: 190px;
+  }
+  .state h4 { margin: 0 0 6px; font-family: var(--mono); font-size: 15px; }
+  .state.slave h4 { color: var(--teal); }
+  .state.master h4 { color: var(--glow); }
+  .state ul { margin: 0; padding-left: 16px; font-size: 12.5px; color: var(--muted); }
+  .arrows { flex: 1; display: grid; gap: 14px; padding: 0 14px; min-width: 200px; }
+  .arrow { position: relative; text-align: center; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--faint); padding-bottom: 3px; }
+  .arrow::after { content: ""; position: absolute; bottom: -4px; width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+  .arrow.right::after { right: -1px; border-left: 7px solid var(--faint); }
+  .arrow.left::after { left: -1px; border-right: 7px solid var(--faint); }
+
+  /* ---------- Palettes ---------- */
+  .palgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin: 16px 0; }
+  .pal { border: 1px solid var(--line); border-radius: 5px; overflow: hidden; background: var(--panel); }
+  .pal .swatch { display: flex; height: 34px; }
+  .pal .swatch i { flex: 1; }
+  .pal .label { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; font-size: 12px; color: var(--muted); }
+  .pal .label .idx { font-family: var(--mono); color: var(--faint); }
+
+  .flagchip { display: inline-block; font-family: var(--mono); font-size: 11.5px; border: 1px solid var(--line); border-radius: 3px; padding: 0 6px; margin: 1px 2px 1px 0; color: var(--teal); background: rgba(111,216,201,0.06); white-space: nowrap; }
+
+  .cardgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; margin: 18px 0; }
+  .card { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); padding: 18px 20px; }
+  .card h4 { margin: 0 0 2px; font-family: var(--mono); font-size: 15px; color: var(--glow); font-weight: 600; }
+  .card .sub { font-size: 12px; color: var(--faint); margin-bottom: 10px; }
+  .card p { font-size: 13.5px; margin: 0 0 8px; }
+  .card dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; margin: 10px 0 0; font-size: 12.5px; }
+  .card dt { color: var(--faint); }
+  .card dd { margin: 0; font-family: var(--mono); color: #c6cbde; }
+
+  footer.pagefoot { border-top: 1px solid var(--line); margin-top: 90px; padding-top: 24px; font-size: 12.5px; color: var(--faint); }
+
+  @media (max-width: 900px) {
+    nav.side { display: none; }
+    .content, .hero-inner { padding-left: 22px; padding-right: 22px; }
+  }
+</style>
+
+<div class="layout">
+<nav class="side" aria-label="Sections">
+  <div class="brand">Firefly2<small>System documentation</small></div>
+  <ol>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li class="navgroup">Radio</li>
+    <li><a href="#protocol">Packets &amp; wire format</a></li>
+    <li><a href="#mesh">Mesh flooding</a></li>
+    <li><a href="#statemachine">Master / slave lifecycle</a></li>
+    <li class="navgroup">Light</li>
+    <li><a href="#leds">LED pipeline</a></li>
+    <li><a href="#effects">Effects</a></li>
+    <li><a href="#palettes">Palettes</a></li>
+    <li><a href="#devices">Device catalog</a></li>
+    <li class="navgroup">Hardware &amp; tooling</li>
+    <li><a href="#hardware">Hardware targets</a></li>
+    <li><a href="#firmware">Firmware entry points</a></li>
+    <li><a href="#build">Build, test, lint</a></li>
+    <li><a href="#repomap">Repository map</a></li>
+    <li class="navgroup">Looking ahead</li>
+    <li><a href="#edges">Known sharp edges</a></li>
+    <li><a href="#bridge">Constraints on the 2.4 GHz bridge</a></li>
+  </ol>
+  <div class="meta">master @ dedee8b<br>generated 2026-07-04</div>
+</nav>
+
+<main>
+<header class="hero">
+  <canvas id="fireflies" aria-hidden="true"></canvas>
+  <div class="hero-inner">
+    <div class="eyebrow">Candy Kingdom · Firefly2</div>
+    <h1>A field guide to a <em>swarm of lights</em></h1>
+    <p class="lede">Firefly2 is the firmware and hardware behind wireless-synchronized LED devices — bikes, costumes, lanterns, art pieces — that find each other over 915&nbsp;MHz radio, elect a leader, agree on a clock, and animate in lockstep with no infrastructure at all.</p>
+    <div class="stats">
+      <div class="stat"><b>915 MHz</b>RFM69HW radio</div>
+      <div class="stat"><b>4</b>packet types</div>
+      <div class="stat"><b>18</b>effects (11 in rotation)</div>
+      <div class="stat"><b>22</b>color palettes</div>
+      <div class="stat"><b>7</b>PlatformIO targets</div>
+      <div class="stat"><b>3</b>MCU families</div>
+    </div>
+  </div>
+</header>
+
+<div class="content">
+
+<section id="overview">
+  <p class="eyebrow">01 · Overview</p>
+  <h2>What the system is</h2>
+  <p>Every Firefly device is a small battery-powered board driving one or more WS2812B (NeoPixel) strips, with an RFM69HW packet radio on 915&nbsp;MHz. Devices form an ad-hoc mesh: there is no pairing, no join procedure, and no configuration beyond compiling in a <code>DeviceDescription</code>. Power a device on and it listens; if it hears nobody for a few seconds, it appoints itself <b>master</b> and starts running the show.</p>
+  <p>The master does three things on timers: it broadcasts a <b>heartbeat</b> carrying the network clock every second, re-broadcasts the current effect selection every two seconds, and picks a new random effect and palette every sixty seconds. Every other device is a <b>slave</b>: it locks its clock to the heartbeats and renders whatever effect the master last announced. Because all animation is computed as a pure function of <em>(LED index, network time, strip config, effect packet)</em>, devices that agree on those inputs render identical frames without ever exchanging pixel data.</p>
+  <p>Two auxiliary device roles exist today: a handheld <b>controller</b> with buttons that lets a human force an effect, palette, or solid color across the swarm, and a <b>DMX bridge</b> on ESP32 that translates a DMX universe into direct color commands — the precedent for the planned 2.4&nbsp;GHz bridge.</p>
+</section>
+
+<section id="architecture">
+  <p class="eyebrow">02 · Architecture</p>
+  <h2>Layers</h2>
+  <p>The codebase splits along a strict seam: everything in <code>lib/</code> and <code>src/generic/</code> is platform-independent C++14 that also compiles on a desktop for testing (against <code>FakeFastLED</code> and <code>FakeRadio</code>), while <code>src/arduino/</code> and <code>src/devices/</code> hold the hardware-facing code.</p>
+  <div class="diagram">
+    <div class="cap">Runtime composition — every device wires this same chain in <code>setup()</code></div>
+    <div class="stack">
+      <div class="layer"><div class="role">Application</div><div class="cells">
+        <div class="cell">node.cpp<small>SAMD21</small></div>
+        <div class="cell">fancy-node.cc<small>STM32G030</small></div>
+        <div class="cell">controller.cpp<small>STM32G070</small></div>
+        <div class="cell">dmx.cpp<small>ESP32</small></div>
+      </div></div>
+      <div class="layer"><div class="role">Rendering</div><div class="cells">
+        <div class="cell hi">LedManager → FastLedManager<small>effect registry, strip mapping, power limits</small></div>
+        <div class="cell">Effect × 17<small>pure f(index, time, strip, packet)</small></div>
+      </div></div>
+      <div class="layer"><div class="role">Coordination</div><div class="cells">
+        <div class="cell hi">RadioStateMachine<small>master election · clock sync · timers</small></div>
+      </div></div>
+      <div class="layer"><div class="role">Network</div><div class="cells">
+        <div class="cell">NetworkManager<small>flood rebroadcast + packet-ID dedup</small></div>
+      </div></div>
+      <div class="layer"><div class="role">Radio</div><div class="cells">
+        <div class="cell">Radio (abstract)<small>readPacket / sendPacket / sleep</small></div>
+        <div class="cell">RadioHeadRadio<small>RadioHead RH_RF69 driver</small></div>
+      </div></div>
+      <div class="layer"><div class="role">Hardware</div><div class="cells">
+        <div class="cell hw">RFM69HW @ 915 MHz, +13 dBm</div>
+        <div class="cell hw">WS2812B strips via FastLED</div>
+      </div></div>
+    </div>
+  </div>
+  <p>The main loop on every device is two calls: <code>state_machine.Tick()</code> (radio + timers, run twice per tick because writing LEDs can take several milliseconds) and <code>led_manager-&gt;RunEffect()</code> (render one frame). Everything else — election, sync, effect changes — happens inside those.</p>
+</section>
+
+<section id="protocol">
+  <p class="eyebrow">03 · Radio protocol</p>
+  <h2>Packets &amp; wire format</h2>
+  <p>The application layer defines exactly four packet types (<code>lib/radio/Radio.hpp</code>). A Firefly packet is a 3-byte header plus up to 58 bytes of type-specific payload, carried inside RadioHead’s own RF69 framing (preamble, sync words, length byte, 4-byte RadioHead header, CRC — the RFM69 FIFO’s 64 bytes bound the total).</p>
+  <div class="diagram">
+    <div class="cap">Firefly packet layout (inside the RadioHead payload)</div>
+    <div class="bytes">
+      <div class="byte"><b>packet_id</b>2 bytes<small>random uint16, big-endian — mesh dedup key</small></div>
+      <div class="byte"><b>type</b>1 byte<small>PacketType enum</small></div>
+      <div class="byte data"><b>data</b>0–58 bytes<small>payload, length implied by radio frame</small></div>
+    </div>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Type</th><th>Sender</th><th>Payload</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">HEARTBEAT</td><td>Master, every 1 s</td><td class="mono">uint32 network_millis</td><td>Liveness + clock sync. Slaves set <code>millis_offset_ = packet_time − millis()</code>. A master hearing another master’s heartbeat triggers an election.</td></tr>
+      <tr><td class="mono">CLAIM_MASTER</td><td>Election winner</td><td>—</td><td>“Stand down.” Any master receiving it immediately becomes a slave.</td></tr>
+      <tr><td class="mono">SET_EFFECT</td><td>Master or controller</td><td class="mono">effect_index, delay_s, palette_index</td><td>Selects the animation. A non-zero <code>delay</code> (seconds, max 255) reserves the effect — the master won’t rotate until it expires. The controller sends delay=60.</td></tr>
+      <tr><td class="mono">SET_CONTROL</td><td>Controller or DMX bridge</td><td class="mono">delay_s, r, g, b</td><td>Direct solid-color override for the whole swarm, same reservation semantics (DMX uses delay=5).</td></tr>
+    </tbody>
+  </table></div>
+  <p>Radio configuration lives in <code>RadioHeadRadio::Begin()</code>: 915.0&nbsp;MHz, +13&nbsp;dBm, and otherwise RadioHead <code>RH_RF69</code> defaults — which means the library’s default modem settings (GFSK 250&nbsp;kb/s) and default 2-byte sync word shared by every RadioHead project in the world. There is no addressing, no encryption, and no network identifier at any layer.</p>
+</section>
+
+<section id="mesh">
+  <p class="eyebrow">04 · Radio protocol</p>
+  <h2>Mesh flooding</h2>
+  <p><code>NetworkManager</code> implements the entire mesh in about thirty lines: it is a <b>flood network with duplicate suppression</b>, not a routed mesh. Every node re-broadcasts every packet it hasn’t seen recently, extending range one hop at a time.</p>
+  <ul class="prose">
+    <li><b>Send:</b> stamp the packet with a fresh random <code>packet_id</code> in [2,&nbsp;0xFFFF), transmit, and remember the ID.</li>
+    <li><b>Receive:</b> if the ID is in the recent-IDs cache, drop it silently. Otherwise <em>immediately re-transmit the packet verbatim</em>, cache the ID, and hand it up to the state machine.</li>
+    <li><b>Cache:</b> a 5-entry circular buffer (<code>kRecentIdsCacheSize</code>). At the master’s steady-state rate (~1.5 packets/s) that is ~3 seconds of memory.</li>
+  </ul>
+  <div class="callout"><b>Airtime economics.</b> Every packet is transmitted once per node that hears it. A swarm of <i>N</i> mutually-audible devices turns each logical broadcast into <i>N</i> transmissions. At the steady-state rate of ~1.5 packets/s this is fine for dozens of nodes on 915&nbsp;MHz, but it is the single most important number when reasoning about coexisting swarms — two groups in earshot don’t just share spectrum, they re-broadcast <em>each other’s</em> packets.</div>
+</section>
+
+<section id="statemachine">
+  <p class="eyebrow">05 · Radio protocol</p>
+  <h2>Master / slave lifecycle</h2>
+  <p><code>RadioStateMachine</code> (<code>src/generic/</code>) is a two-state machine processing one event per tick — either a received packet or an expired timer, never both. That constraint keeps the handlers simple and is load-bearing for the tests.</p>
+  <div class="diagram">
+    <div class="cap">States and transitions</div>
+    <div class="statebox">
+      <div class="state slave"><h4>Slave</h4><ul>
+        <li>Syncs clock from heartbeats</li>
+        <li>Applies SET_EFFECT / SET_CONTROL</li>
+        <li>Rebroadcasts everything</li>
+        <li>Arms a 5–7 s dead-man timer</li>
+      </ul></div>
+      <div class="arrows">
+        <div class="arrow right">no packet for 5000 + rand(2000) ms</div>
+        <div class="arrow left">lost election, or CLAIM_MASTER received</div>
+      </div>
+      <div class="state master"><h4>Master</h4><ul>
+        <li>Heartbeat every 1 s</li>
+        <li>Rebroadcast effect every 2 s</li>
+        <li>Random new effect every 60 s</li>
+        <li>Elects on rival heartbeat</li>
+      </ul></div>
+    </div>
+  </div>
+  <h3>Election</h3>
+  <p>When a master hears a rival heartbeat, it draws a random <code>uint16</code> and compares it to the rival packet’s <code>packet_id</code>. Higher number wins: the winner broadcasts <code>CLAIM_MASTER</code>, the loser demotes itself. Ties resolve over successive heartbeats — with randomized slave timeouts and a coin-flip election, the network converges to one master within a few seconds. There is no seniority, and mastership is deliberately cheap to lose: any device can be master, so the swarm survives any device leaving.</p>
+  <h3>Clock &amp; cadence continuity</h3>
+  <p>Network time is the master’s <code>millis()</code> propagated by heartbeat; each slave stores a signed offset. Two details preserve visual continuity across master handoffs: a new master inherits network time (it sends <code>GetNetworkMillis()</code>, not its raw clock), and it inherits the effect-change cadence via <code>effect_change_seen_at_</code> — so a leadership change doesn’t make the lights jump or reset the 60-second rotation.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Constant</th><th>Value</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">kSlaveNoPacketTimeout</td><td class="num">5000 ms</td><td>Silence before a slave self-promotes…</td></tr>
+      <tr><td class="mono">kSlaveNoPacketRandom</td><td class="num">+ 0–2000 ms</td><td>…jittered so an orphaned swarm doesn’t promote everyone at once.</td></tr>
+      <tr><td class="mono">kMasterHeartbeatInterval</td><td class="num">1000 ms</td><td>Heartbeat / clock-sync period.</td></tr>
+      <tr><td class="mono">kBroadcastEffectInterval</td><td class="num">2000 ms</td><td>Effect re-announcement, so late joiners converge within ~2 s.</td></tr>
+      <tr><td class="mono">kChangeEffectInterval</td><td class="num">60 000 ms</td><td>Random effect + palette rotation.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="leds">
+  <p class="eyebrow">06 · Light</p>
+  <h2>LED pipeline</h2>
+  <p><code>LedManager</code> owns the effect registry and the per-frame render loop; <code>FastLedManager</code> binds it to real hardware through FastLED. Each frame, <code>RunEffect()</code> walks every strip in the <code>DeviceDescription</code> and asks the current effect for each LED’s color at the current <em>network</em> time — local time never touches rendering.</p>
+  <ul class="prose">
+    <li><b>Strip flags shape the query:</b> <code>Reversed</code> flips the index, <code>Off</code> blanks the strip, <code>Dim</code> divides output by 8, and <code>Circular</code>/<code>Mirrored</code>/<code>Tiny</code>/<code>Bright</code>/<code>Controller</code> are hints effects use to adapt (e.g. wrap seamlessly on a ring).</li>
+    <li><b>Power safety:</b> <code>FastLED.setMaxPowerInVoltsAndMilliamps(5, milliamps_supported)</code> caps total draw per the device’s power budget (2350&nbsp;mA on the stock RF board).</li>
+    <li><b>LED zero is the onboard pass-through pixel</b>; user strips start at index 1, so <code>SetLed(i)</code> writes <code>leds[i+1]</code>.</li>
+    <li><b>Effect index is network state:</b> <code>SET_EFFECT</code> carries a raw index into the weighted registry, so every device must register the same effects in the same order — the registry in <code>LedManager</code>’s constructor is effectively part of the protocol.</li>
+  </ul>
+</section>
+
+<section id="effects">
+  <p class="eyebrow">07 · Light</p>
+  <h2>Effects</h2>
+  <p>Effects are stateless-by-convention subclasses of <code>Effect</code> implementing one method: <code>GetRGB(led_index, time_ms, strip, setEffectPacket)</code>. Random rotation is weighted by duplicating registry entries — an effect registered with proportion 4 occupies 4 of the 27 rotation slots. Proportion-0 effects exist in the table (so a controller can force them) but never come up in rotation.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Effect</th><th>Weight</th><th>Odds</th><th>Character</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">RainbowEffect</td><td class="num">4</td><td class="num">15%</td><td>Classic moving rainbow gradient.</td></tr>
+      <tr><td class="mono">RainbowBumpsEffect</td><td class="num">4</td><td class="num">15%</td><td>Rainbow with traveling intensity bumps.</td></tr>
+      <tr><td class="mono">SparkEffect</td><td class="num">4</td><td class="num">15%</td><td>Sparks shooting along the strip.</td></tr>
+      <tr><td class="mono">SwingingLights</td><td class="num">4</td><td class="num">15%</td><td>Pendulum bands of palette color.</td></tr>
+      <tr><td class="mono">ColorCycleEffect</td><td class="num">2</td><td class="num">7%</td><td>Whole strip cycles through the palette.</td></tr>
+      <tr><td class="mono">ContrastBumpsEffect</td><td class="num">2</td><td class="num">7%</td><td>High-contrast palette bumps.</td></tr>
+      <tr><td class="mono">FireflyEffect</td><td class="num">2</td><td class="num">7%</td><td>The namesake: per-device blink phase drifts out of sync and re-synchronizes in waves, like real fireflies.</td></tr>
+      <tr><td class="mono">RorschachEffect</td><td class="num">2</td><td class="num">7%</td><td>Mirrored Perlin-noise inkblots.</td></tr>
+      <tr><td class="mono">FireEffect</td><td class="num">1</td><td class="num">4%</td><td>Perlin-noise flame.</td></tr>
+      <tr><td class="mono">LightningEffect</td><td class="num">1</td><td class="num">4%</td><td>Bright strikes with decay.</td></tr>
+      <tr><td class="mono">PrideEffect</td><td class="num">1</td><td class="num">4%</td><td>Pride flag bands.</td></tr>
+      <tr><td class="mono">SwingingLights (alt)</td><td class="num">0</td><td>manual</td><td>Formerly police lights.</td></tr>
+      <tr><td class="mono">StopLightEffect</td><td class="num">0</td><td>manual</td><td>Red / yellow / green hold.</td></tr>
+      <tr><td class="mono">SimpleBlinkEffect ×4</td><td class="num">0</td><td>manual</td><td>Strobes at 60 / 30 / 12 / 300 ms — deliberately kept out of rotation.</td></tr>
+      <tr><td class="mono">MorseEffect</td><td class="num">*</td><td>varies</td><td>Compiled-in message in ITU morse timing (120 ms unit), palette-colored. Blink mode pulses the whole device in unison; marquee mode prints the pattern along the strip (one unit per LED) and scrolls it. Registered messages and weights are chosen in <code>LedManager.cpp</code>.</td></tr>
+      <tr><td class="mono">DisplayColorPaletteEffect</td><td class="num">0</td><td>manual</td><td>Renders the palette itself; the controller uses it as a picker UI.</td></tr>
+      <tr><td class="mono">DarkEffect</td><td class="num">0</td><td>manual</td><td>All off. Must stay last in the registry (the controller relies on the order).</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="palettes">
+  <p class="eyebrow">08 · Light</p>
+  <h2>Palettes</h2>
+  <p>22 palettes live in <code>Effect::palettes()</code> as CHSV lists; effects sample them via <code>GetGradient()</code> (smooth interpolation, optionally wrapping) or <code>GetColor()</code> (discrete). The swatches below are rendered from the actual CHSV values through a port of FastLED’s <code>hsv2rgb_rainbow</code>, so they match what the LEDs show. The first eight are solid anchors; the controller’s palette page exposes indices 8–13.</p>
+  <div class="palgrid" id="palgrid"></div>
+</section>
+
+<section id="devices">
+  <p class="eyebrow">09 · Configuration</p>
+  <h2>Device catalog</h2>
+  <p>A <code>DeviceDescription</code> is a power budget plus a list of <code>StripDescription</code>s (LED count + flags). The fleet is declared in <code>lib/device/Devices.hpp</code>; <code>Devices::current</code> points at one entry — currently <code>scarf</code> — which serves as the compiled-in fallback. Node and fancy-node builds default to <code>READ_FROM_FLASH</code>: at boot they parse a 32-byte <b>FlashConfigV1</b> blob (magic <code>"FFLY"</code>, version, strip table, CRC32) from the config flash region (<code>0x1E000</code> on node), falling back to <code>Devices::current</code> when absent or invalid. Because the format is a serialized POD rather than a raw struct, external tools — notably the web configurator — can write it directly, so reconfiguring a device doesn’t require recompiling. <code>WRITE_TO_FLASH</code> seeds the blob from the header (write-skipped when unchanged to avoid flash wear).</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Device</th><th>LEDs</th><th>Strips</th><th>Flags</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">scarf ← current</td><td class="num">46</td><td class="num">1</td><td>—</td></tr>
+      <tr><td class="mono">bike / ben_s_bike / will_bike</td><td class="num">30 / 28 / 63</td><td class="num">1</td><td><span class="flagchip">Bright</span></td></tr>
+      <tr><td class="mono">lantern</td><td class="num">5</td><td class="num">1</td><td><span class="flagchip">Tiny</span></td></tr>
+      <tr><td class="mono">puck / two_side_puck</td><td class="num">12 / 24</td><td class="num">1</td><td><span class="flagchip">Tiny</span><span class="flagchip">Circular</span><span class="flagchip">Mirrored*</span></td></tr>
+      <tr><td class="mono">rainbow_cloak</td><td class="num">116</td><td class="num">3</td><td><span class="flagchip">Tiny</span><span class="flagchip">Circular</span><span class="flagchip">Reversed</span></td></tr>
+      <tr><td class="mono">backpack_tail / dan_jacket / will_jacket</td><td class="num">11 / 60 / 56</td><td class="num">1</td><td>—</td></tr>
+      <tr><td class="mono">will_bike_front / bike_front / will_top_hat / whatever</td><td class="num">27 / 18 / 50 / 18</td><td class="num">1</td><td><span class="flagchip">Circular</span></td></tr>
+      <tr><td class="mono">hex_light</td><td class="num">12</td><td class="num">1</td><td><span class="flagchip">Circular</span><span class="flagchip">Tiny</span></td></tr>
+      <tr><td class="mono">half_matrix_panel</td><td class="num">128</td><td class="num">8</td><td><span class="flagchip">Reversed</span> alternating — serpentine matrix</td></tr>
+      <tr><td class="mono">backpack_rope / will_backpack</td><td class="num">192</td><td class="num">2</td><td><span class="flagchip">Dim*</span><span class="flagchip">Reversed</span></td></tr>
+      <tr><td class="mono">ufo</td><td class="num">92</td><td class="num">4</td><td><span class="flagchip">Circular</span><span class="flagchip">Bright</span><span class="flagchip">Dim</span> per ring</td></tr>
+      <tr><td class="mono">brooke_bike / ross_backpack</td><td class="num">83 / 50</td><td class="num">4</td><td>mixed per strip</td></tr>
+    </tbody>
+  </table></div>
+  <p>All entries share the RF-board budget of <span class="mono">2350 mA</span> (2400 minus 50 for the board itself).</p>
+</section>
+
+<section id="hardware">
+  <p class="eyebrow">10 · Hardware</p>
+  <h2>Hardware targets</h2>
+  <div class="cardgrid">
+    <div class="card"><h4>node / rfboard</h4><div class="sub">the workhorse wearable controller</div>
+      <p>Custom SAMD21 board (custom PlatformIO platform + UF2/bossac bootloader). Runs a ~128 ms hardware watchdog fed every 5 loop iterations.</p>
+      <dl><dt>MCU</dt><dd>ATSAMD21</dd><dt>Upload</dt><dd>UF2 drag-drop / bossac</dd><dt>Storage</dt><dd>FlashStorage_SAMD @ top of flash</dd></dl>
+    </div>
+    <div class="card"><h4>fancy-node</h4><div class="sub">second-generation node</div>
+      <p>STM32G030C8T with battery monitoring (median + EMA filtered, 3.6 V cutoff / 3.85 V resume) and two buttons.</p>
+      <dl><dt>MCU</dt><dd>STM32G030C8T</dd><dt>Upload</dt><dd>ST-Link, or stm32loader over USB</dd><dt>Storage</dt><dd>EEPROM emulation @ 0x800F800 (last 2 kB page)</dd><dt>Pins</dt><dd>radio SS=4 DIO=8 · LEDs PA10</dd></dl>
+    </div>
+    <div class="card"><h4>controller</h4><div class="sub">handheld swarm remote</div>
+      <p>STM32G070CBT, nine buttons + 3-position mode switch, two 12-LED preview rows. Three modes: effect/palette browse-and-send (60 s reservation), direct color, direct palette. Enters its bootloader via an RTC-epoch double-reset trick.</p>
+      <dl><dt>MCU</dt><dd>STM32G070CBT</dd><dt>Battery</dt><dd>3.4 V cutoff / 3.85 V resume</dd><dt>Status LEDs</dt><dd>red=slave · green=master · blue=TX</dd></dl>
+    </div>
+    <div class="card"><h4>dmx</h4><div class="sub">DMX-to-swarm bridge (ESP32)</div>
+      <p>SparkFun ESP32 Thing Plus + DMX shield. Reads channels 3–5 as RGB and broadcasts <code>SET_CONTROL</code> with a 5 s reservation on change (or at least every second). Notably bypasses <code>NetworkManager</code> — it stamps sequential packet IDs itself and does not participate in dedup or rebroadcast.</p>
+      <dl><dt>MCU</dt><dd>ESP32</dd><dt>Pins</dt><dd>radio SS=32 DIO=14</dd></dl>
+    </div>
+  </div>
+  <p>PCB sources (KiCad) live in <code>hardware/</code>: controller, fancy-node, rfboard, puck, 40/50 mm rings, remote, and a magnet connector — with JLC BOM/CPL exports and gerbers checked in. <code>remote</code>, <code>trellis</code>, and <code>range_test</code> firmware exist as experiments; their build environments are commented out.</p>
+</section>
+
+<section id="firmware">
+  <p class="eyebrow">11 · Hardware</p>
+  <h2>Firmware entry points</h2>
+  <p>Every device follows the same skeleton; the differences are peripherals and boot rituals.</p>
+  <pre><code><span class="c">// The canonical device loop (node.cpp, simplified)</span>
+RadioHeadRadio *radio = <span class="k">new</span> RadioHeadRadio();  <span class="c">// must be heap-allocated —</span>
+NetworkManager nm(radio);                        <span class="c">// stack object crashes on RX</span>
+RadioStateMachine state_machine(&amp;nm);
+FastLedManager *led_manager;                     <span class="c">// built from Devices::current or flash</span>
+
+<span class="k">void</span> loop() {
+  state_machine.Tick();      <span class="c">// radio, election, timers (runs twice internally)</span>
+  led_manager-&gt;RunEffect();  <span class="c">// render frame at network time</span>
+  <span class="c">// node: feed 128 ms watchdog every 5th iteration</span>
+  <span class="c">// fancy-node/controller: battery filters, low-power cutoff</span>
+}</code></pre>
+  <p>Boot rituals worth knowing: the node configures the SAMD21 watchdog against the ultra-low-power 32&nbsp;kHz oscillator (no prescaler — feeding is expensive); the controller sets the <code>nBOOT_SEL</code> option bit on first boot and uses RTC epoch sentinels to detect a quick double reset and jump to the STM32 system bootloader; radio init failure is signaled by a red blink loop (<code>FatalErrorAnimation</code>).</p>
+</section>
+
+<section id="build">
+  <p class="eyebrow">12 · Tooling</p>
+  <h2>Build, test, lint</h2>
+  <h3>PlatformIO environments</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Environment</th><th>Board</th><th>Upload</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">node</td><td>rfboard (SAMD21, custom platform)</td><td>bossac (per-OS package) + UF2 via <code>tools/create_uf2.py</code></td></tr>
+      <tr><td class="mono">node-arm64</td><td>rfboard</td><td><code>bossac_wrapper.sh</code> (Apple-Silicon workaround)</td></tr>
+      <tr><td class="mono">fancy-node</td><td>generic_stm32g030c8t</td><td>ST-Link</td></tr>
+      <tr><td class="mono">fancy-node-usb</td><td>generic_stm32g030c8t</td><td>stm32loader (custom fork) over USB serial</td></tr>
+      <tr><td class="mono">controller / controller-usb</td><td>generic_stm32g070cbt</td><td>ST-Link / stm32loader</td></tr>
+      <tr><td class="mono">dmx</td><td>esp32thing_plus</td><td>esptool (standard ESP32 flow)</td></tr>
+    </tbody>
+  </table></div>
+  <pre><code>pio run -e node                              <span class="c"># build</span>
+pio run -e fancy-node -t upload              <span class="c"># flash via ST-Link</span>
+pio run -e fancy-node-usb -t upload --upload-port /dev/ttyUSB0
+pio device monitor                           <span class="c"># 115200 baud</span></code></pre>
+  <h3>Desktop tests (GoogleTest via CMake)</h3>
+  <p>The generic layer builds natively with ASan/UBSan and <code>-Wall -Wextra -pedantic</code>. <code>smalltests</code> covers packets, the state machine (including a full two-fake-device integration of election and sync via <code>FakeNetwork</code>), LED management, effects, and math; <code>largetests</code> fuzzes invalid packets. A desktop <b>simulator</b> target (<code>lib/simulator/</code>) renders effects without hardware.</p>
+  <pre><code>mkdir -p build &amp;&amp; cd build &amp;&amp; cmake .. &amp;&amp; make &amp;&amp; make test
+./smalltests --gtest_filter=RadioStateMachineTest*
+./lint.sh check | format | tidy              <span class="c"># clang-format / clang-tidy</span>
+./ci.sh                                      <span class="c"># what CI runs</span></code></pre>
+</section>
+
+<section id="repomap">
+  <p class="eyebrow">13 · Tooling</p>
+  <h2>Repository map</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Path</th><th>Contents</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">lib/radio, src/generic</td><td>Protocol core: <code>Radio.hpp</code> (packet types), <code>NetworkManager</code>, <code>RadioStateMachine</code>. Platform-free.</td></tr>
+      <tr><td class="mono">lib/effect, lib/color</td><td>17 effect classes, <code>Effect</code> base, 22 palettes, gradient math.</td></tr>
+      <tr><td class="mono">lib/device</td><td><code>DeviceDescription</code>, <code>StripDescription</code>, the fleet in <code>Devices.hpp</code>.</td></tr>
+      <tr><td class="mono">lib/led_manager, src/arduino</td><td>Render loop; FastLED and RadioHead bindings.</td></tr>
+      <tr><td class="mono">lib/fake-radio, lib/fake-led-manager, lib/simulator</td><td>Test doubles and the desktop simulator.</td></tr>
+      <tr><td class="mono">src/devices/*</td><td>Per-device firmware: node, fancy-node, controller, dmx (+ experimental remote, trellis, range_test).</td></tr>
+      <tr><td class="mono">hardware/, assembly/, boards/</td><td>KiCad projects + gerbers + JLC exports; BOM; PlatformIO board defs.</td></tr>
+      <tr><td class="mono">bootloader/, tools/</td><td>Prebuilt UF2 bootloaders, SWD programming config, UF2 conversion scripts.</td></tr>
+      <tr><td class="mono">test/</td><td>GoogleTest suites incl. <code>FakeNetwork</code> multi-device integration harness.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="edges">
+  <p class="eyebrow">14 · Looking ahead</p>
+  <h2>Known sharp edges</h2>
+  <p>Documented honestly, because several of these become design inputs for the next revision rather than bugs to ignore.</p>
+  <ul class="prose">
+    <li><b>No network identity or authentication.</b> Any RFM69 running RadioHead defaults on 915 MHz is a full peer: it can claim mastership, set effects, and its packets get rebroadcast by your swarm. Two Firefly groups camped near each other will merge into one show (and burn each other’s airtime doing it). The RFM69 has hardware AES-128 and configurable sync words — both unused today.</li>
+    <li><b>Dedup is probabilistic.</b> Packet IDs are random 16-bit values checked against a 5-entry cache; an ID collision inside the window silently drops a legitimate packet. Fine at 1.5 pkt/s, worth revisiting at any higher rate or with multiple bridged segments.</li>
+    <li><b>The DMX bridge sidesteps the mesh.</b> It stamps sequential IDs starting at 0 and never rebroadcasts, so its packets are deduped by others but it contributes nothing to propagation — acceptable for a stationary transmitter, but not a pattern to copy for the 2.4 GHz bridge.</li>
+    <li><b>The effect registry is implicit protocol.</b> <code>SET_EFFECT</code> ships a raw index, so all devices must be built with identical registries. Mixed-firmware swarms render different effects for the same packet (indices wrap on hardware rather than asserting).</li>
+    <li><b>Timer comparisons don’t handle <code>millis()</code> rollover</b> (~49.7 days) — irrelevant at festival timescales, relevant if “camp structure” devices stay powered for weeks.</li>
+    <li><b>Folk-knowledge bugs are load-bearing:</b> <code>RadioHeadRadio</code> must be heap-allocated or the node crashes on receive; the first <code>Tick()</code> may only run the radio once (suspected compiler bug, see comment in <code>RadioStateMachine::Tick</code>).</li>
+  </ul>
+</section>
+
+<section id="bridge">
+  <p class="eyebrow">15 · Looking ahead</p>
+  <h2>Constraints on the 2.4 GHz bridge</h2>
+  <p>The next revision plans an ESP32-based, 2.4 GHz-only tier for stationary objects (camp structures), bridged to the existing 915 MHz swarm — with an eye toward productization and multiple co-located swarms. The current protocol dictates most of the bridge’s shape:</p>
+  <h3>What the bridge must preserve</h3>
+  <ul class="prose">
+    <li><b>One dedup domain.</b> The mesh’s only loop-prevention is the packet-ID cache. A bridge relaying packets between radios must carry <code>packet_id</code> across unchanged and keep its own (larger) seen-cache, or a two-bridge deployment creates a packet loop that floods both bands.</li>
+    <li><b>Clock semantics.</b> Slaves sync to heartbeat time minus propagation ≈ 0. Any bridge buffering adds skew directly into animation phase across the seam; relay heartbeats with minimal, ideally constant, latency.</li>
+    <li><b>The effect registry contract.</b> 2.4 GHz devices interpret the same <code>SET_EFFECT</code> indices, so they inherit the lockstep-registry requirement — a versioning story is needed before shipping firmware to strangers.</li>
+    <li><b>Election containment.</b> If bridged naively, a 2.4 GHz device can win mastership of the combined network. Decide explicitly whether the bridge forwards <code>CLAIM_MASTER</code>/heartbeats bidirectionally (one merged swarm) or acts as the 2.4 GHz segment’s permanent master proxy (simpler, and the DMX bridge already demonstrates the transmit-only posture).</li>
+  </ul>
+  <h3>Swarm identity — the cheapest place to add it is 915 MHz, not just 2.4</h3>
+  <p>The competing-swarms problem already exists on the current band. Two mechanisms are available on the RFM69 without protocol redesign, and both double as the “network ID” you’re considering:</p>
+  <ul class="prose">
+    <li><b>Sync words as network ID.</b> RadioHead’s <code>setSyncWords()</code> makes the radio hardware drop other networks’ frames before they cost the MCU anything — the classic RFM69 network-ID mechanism. Zero airtime cost, but zero security: it’s an identifier, not authentication.</li>
+    <li><b>Hardware AES-128 as membership.</b> <code>RH_RF69::setEncryptionKey()</code> makes possession of the key the definition of swarm membership — wrong-key frames decrypt to garbage and fail parsing. Cost: payload pads to 16-byte blocks (Firefly packets are ≤7 bytes of payload today, so airtime roughly doubles per frame — at 1.5 pkt/s this is affordable). Note this authenticates <em>membership</em>, not messages: no replay protection, and anyone with the key is fully trusted.</li>
+  </ul>
+  <p>Neither stops a hostile actor from jamming, but both solve the actual stated problem — accidental cross-swarm flooding and rebroadcast amplification between neighboring groups. A reasonable v3 posture: sync-word network ID for isolation, AES key per swarm for product deployments, same key/ID provisioned to the bridge’s 2.4 GHz side (ESP-NOW’s per-peer encryption or an app-layer MAC — note ESP-NOW broadcast frames are unencrypted, so app-layer is likely required for broadcast-style traffic).</p>
+  <h3>Airtime on 2.4 GHz is a different economy</h3>
+  <p>915 MHz at festivals is relatively quiet; 2.4 GHz is the most congested spectrum on site (camp Wi-Fi, phones, BLE). The flood-rebroadcast design that is cheap on 915 should not be transplanted as-is: prefer a protocol with native broadcast and no per-node re-transmission (ESP-NOW broadcast, or ESP32 Wi-Fi in a fixed-infrastructure mode for stationary structures), and let only designated repeaters extend range. The current protocol’s tiny packets and 1.5 pkt/s steady state are an asset here — the payload fits any 2.4 GHz transport trivially.</p>
+</section>
+
+<footer class="pagefoot">
+  Generated from source at <span class="mono">master @ dedee8b</span> · key files: <span class="mono">lib/radio/Radio.hpp · src/generic/RadioStateMachine.cpp · src/generic/NetworkManager.cpp · lib/led_manager/LedManager.cpp · lib/device/Devices.hpp · platformio.ini</span>
+</footer>
+
+</div>
+</main>
+</div>
+
+<script>
+// ---------- Palette swatches: FastLED hsv2rgb_rainbow port ----------
+function scale8(i, s) { return (i * (1 + s)) >> 8; }
+function scale8_video(i, s) { return ((i * s) >> 8) + ((i && s) ? 1 : 0); }
+function hsv2rgb(h, s, v) {
+  const offset = h & 0x1f, offset8 = offset << 3;
+  const third = scale8(offset8, 256 / 3 | 0);
+  let r, g, b;
+  if (!(h & 0x80)) {
+    if (!(h & 0x40)) {
+      if (!(h & 0x20)) { r = 255 - third; g = third; b = 0; }
+      else { r = 171; g = 85 + third; b = 0; }
+    } else {
+      if (!(h & 0x20)) { const tt = scale8(offset8, 256 * 2 / 3 | 0); r = 171 - tt; g = 170 + third; b = 0; }
+      else { r = 0; g = 255 - third; b = third; }
+    }
+  } else {
+    if (!(h & 0x40)) {
+      if (!(h & 0x20)) { const tt = scale8(offset8, 256 * 2 / 3 | 0); r = 0; g = 171 - tt; b = 85 + tt; }
+      else { r = third; g = 0; b = 255 - third; }
+    } else {
+      if (!(h & 0x20)) { r = 85 + third; g = 0; b = 171 - third; }
+      else { r = 170 + third; g = 0; b = 85 - third; }
+    }
+  }
+  if (s !== 255) {
+    if (s === 0) { r = g = b = 255; }
+    else {
+      let desat = 255 - s;
+      desat = scale8_video(desat, desat);
+      const satscale = 255 - desat;
+      if (r) r = scale8(r, satscale) + 1;
+      if (g) g = scale8(g, satscale) + 1;
+      if (b) b = scale8(b, satscale) + 1;
+      r += desat; g += desat; b += desat;
+    }
+  }
+  if (v !== 255) {
+    const val = scale8_video(v, v);
+    if (val === 0) { r = g = b = 0; }
+    else {
+      if (r) r = scale8(r, val) + 1;
+      if (g) g = scale8(g, val) + 1;
+      if (b) b = scale8(b, val) + 1;
+    }
+  }
+  return [Math.min(r, 255), Math.min(g, 255), Math.min(b, 255)];
+}
+// FastLED hue constants: RED 0, ORANGE 32, YELLOW 64, GREEN 96, AQUA 128, BLUE 160, PURPLE 192, PINK 224
+const PALETTES = [
+  ["Red", [[0,255,255]]], ["Orange", [[32,255,255]]], ["Yellow", [[64,255,255]]],
+  ["Green", [[96,255,255]]], ["Aqua", [[128,255,255]]], ["Blue", [[160,255,255]]],
+  ["Purple", [[192,255,255]]], ["Pink", [[224,255,255]]],
+  ["Rainbow", [[0,255,255],[96,255,255],[160,255,255]]],
+  ["Warm", [[0,255,255],[192,255,255]]],
+  ["Cool", [[96,255,255],[160,255,255]]],
+  ["Yellow-green", [[64,255,255],[128,255,255]]],
+  ["80s Miami", [[192,255,255],[32,255,255]]],
+  ["Vaporwave", [[33,241,249],[247,188,255],[201,225,160],[153,251,150]]],
+  ["Cool blue", [[128,0,255],[160,255,255]]],
+  ["Candy-cane", [[0,255,255],[0,0,255]]],
+  ["Winter-mint candy-cane", [[128,255,255],[128,0,255]]],
+  ["Fire", [[0,255,255],[32,255,255],[64,255,255]]],
+  ["Pastel rainbow", [[0,127,192],[96,127,192],[160,127,192]]],
+  ["Jazz cup", [[132,255,255],[192,255,255],[0,0,200]]],
+  ["Yellow & double purp", [[192,255,255],[64,255,255],[192,255,255]]],
+  ["Double rainbow", [[0,255,255],[96,255,255],[160,255,255],[0,255,255],[96,255,255],[160,255,255]]],
+];
+const grid = document.getElementById("palgrid");
+PALETTES.forEach(([name, colors], idx) => {
+  const div = document.createElement("div");
+  div.className = "pal";
+  const sw = colors.map(([h,s,v]) => {
+    const [r,g,b] = hsv2rgb(h,s,v);
+    return `<i style="background:rgb(${r},${g},${b})"></i>`;
+  }).join("");
+  div.innerHTML = `<div class="swatch">${sw}</div><div class="label"><span>${name}</span><span class="idx">${idx}</span></div>`;
+  grid.appendChild(div);
+});
+
+// ---------- Scrollspy ----------
+const links = Array.from(document.querySelectorAll("nav.side li a"));
+const sections = links.map(a => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+const byId = {};
+links.forEach(a => byId[a.getAttribute("href").slice(1)] = a);
+const spy = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(a => a.classList.remove("active"));
+      const a = byId[e.target.id];
+      if (a) { a.classList.add("active"); }
+    }
+  });
+}, { rootMargin: "-20% 0px -70% 0px" });
+sections.forEach(s => spy.observe(s));
+
+// ---------- Hero fireflies ----------
+const canvas = document.getElementById("fireflies");
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (canvas) {
+  const ctx = canvas.getContext("2d");
+  let flies = [];
+  function resize() {
+    canvas.width = canvas.offsetWidth * devicePixelRatio;
+    canvas.height = canvas.offsetHeight * devicePixelRatio;
+  }
+  function init() {
+    resize();
+    const n = Math.max(10, Math.floor(canvas.offsetWidth / 70));
+    flies = Array.from({ length: n }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.25 * devicePixelRatio,
+      vy: (Math.random() - 0.5) * 0.18 * devicePixelRatio,
+      phase: Math.random() * Math.PI * 2,
+      freq: 0.4 + Math.random() * 0.5,
+      r: (1.1 + Math.random() * 1.4) * devicePixelRatio,
+    }));
+  }
+  function draw(t) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const f of flies) {
+      if (!reduced) {
+        f.x += f.vx; f.y += f.vy;
+        if (f.x < 0) f.x = canvas.width; if (f.x > canvas.width) f.x = 0;
+        if (f.y < 0) f.y = canvas.height; if (f.y > canvas.height) f.y = 0;
+      }
+      // firefly-effect style: rectified sine brightness, drifting in and out of sync
+      const s = Math.sin(t / 1000 * f.freq * Math.PI * 2 + f.phase);
+      const glow = Math.max(0, s);
+      if (glow > 0.02) {
+        const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 6);
+        g.addColorStop(0, `rgba(255, 205, 120, ${0.75 * glow})`);
+        g.addColorStop(0.4, `rgba(255, 190, 90, ${0.22 * glow})`);
+        g.addColorStop(1, "rgba(255, 190, 90, 0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r * 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = `rgba(255, 226, 170, ${glow})`;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    if (!reduced) requestAnimationFrame(draw);
+  }
+  init();
+  window.addEventListener("resize", init);
+  if (reduced) { draw(2400); } else { requestAnimationFrame(draw); }
+}
+</script>
