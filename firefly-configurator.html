@@ -1,0 +1,927 @@
+<title>Firefly2 Configurator</title>
+<style>
+  :root {
+    --night: #0c101d;
+    --night-2: #121729;
+    --panel: #171d33;
+    --panel-2: #1d2440;
+    --line: #2a3253;
+    --ink: #e9ebf5;
+    --muted: #98a0bd;
+    --faint: #6b7395;
+    --glow: #ffc76a;
+    --glow-dim: #b98a3f;
+    --teal: #6fd8c9;
+    --rose: #e58a9d;
+    --mono: "Cascadia Code", "JetBrains Mono", Consolas, "SF Mono", monospace;
+    --serif: "Palatino Linotype", Palatino, "Iowan Old Style", Georgia, serif;
+    --sans: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--night); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5; }
+  a { color: var(--teal); }
+  :focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+
+  header {
+    display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+    padding: 20px 28px 16px; border-bottom: 1px solid var(--line); background: var(--night-2);
+  }
+  header h1 { font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 0; color: var(--glow); }
+  header .sub { color: var(--faint); font-size: 12.5px; }
+  header .target { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+
+  .wrap { display: grid; grid-template-columns: minmax(340px, 420px) 1fr; gap: 20px; padding: 20px 28px 60px; max-width: 1280px; margin: 0 auto; align-items: start; }
+  @media (max-width: 980px) { .wrap { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+  .panel > .head {
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line);
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint);
+  }
+  .panel > .body { padding: 16px; }
+  .stackv { display: grid; gap: 20px; }
+
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 3px; }
+  select, input[type="number"], input[type="text"] {
+    background: var(--night-2); color: var(--ink); border: 1px solid var(--line); border-radius: 5px;
+    padding: 6px 9px; font-size: 13px; font-family: inherit; width: 100%;
+  }
+  input[type="number"] { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  select:hover, input:hover { border-color: var(--faint); }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .readout { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .readout .r { flex: 1; min-width: 110px; background: var(--night-2); border: 1px solid var(--line); border-radius: 5px; padding: 8px 11px; }
+  .readout .r b { display: block; font-family: var(--mono); font-size: 16px; font-weight: 600; }
+  .readout .r span { font-size: 11px; color: var(--faint); }
+  .readout .r.bad b { color: var(--rose); }
+  .readout .r.ok b { color: var(--teal); }
+
+  .strip {
+    border: 1px solid var(--line); border-radius: 6px; background: var(--night-2);
+    padding: 10px 12px; margin-top: 10px;
+  }
+  .strip .top { display: flex; align-items: center; gap: 10px; }
+  .strip .idx { font-family: var(--mono); font-size: 12px; color: var(--glow); min-width: 24px; }
+  .strip input[type="number"] { width: 76px; }
+  .strip .leds-label { font-size: 12px; color: var(--muted); }
+  .strip button.del { margin-left: auto; background: none; border: 1px solid var(--line); color: var(--faint); border-radius: 4px; width: 26px; height: 26px; cursor: pointer; font-size: 14px; line-height: 1; }
+  .strip button.del:hover { color: var(--rose); border-color: var(--rose); }
+  .flags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+  .flagbtn {
+    font-family: var(--mono); font-size: 11.5px; padding: 2px 8px; border-radius: 3px; cursor: pointer;
+    border: 1px solid var(--line); background: transparent; color: var(--faint);
+  }
+  .flagbtn[aria-pressed="true"] { border-color: var(--teal); color: var(--teal); background: rgba(111,216,201,0.08); }
+  .flagbtn:hover { border-color: var(--faint); }
+
+  button.action {
+    background: var(--glow); color: #1a1406; border: none; border-radius: 5px; padding: 9px 16px;
+    font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  button.action:hover { background: #ffd58a; }
+  button.action:disabled { background: var(--line); color: var(--faint); cursor: not-allowed; }
+  button.ghost {
+    background: transparent; color: var(--teal); border: 1px solid var(--line); border-radius: 5px;
+    padding: 8px 14px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  button.ghost:hover { border-color: var(--teal); }
+  button.ghost:disabled { color: var(--faint); cursor: not-allowed; border-color: var(--line); }
+  .btnrow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  #addstrip { margin-top: 12px; width: 100%; }
+
+  canvas#preview { width: 100%; display: block; border-radius: 6px; background: #070a13; }
+  .pvbar { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: end; }
+  .pvbar > div { flex: 1; min-width: 140px; }
+  .pvbar .pw { flex: 0; }
+  .palswatch { display: flex; height: 8px; border-radius: 2px; overflow: hidden; margin-top: 5px; }
+  .palswatch i { flex: 1; }
+
+  .hex {
+    font-family: var(--mono); font-size: 12px; line-height: 1.9; color: var(--muted);
+    background: var(--night-2); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px;
+    overflow-x: auto; white-space: pre;
+  }
+  .hex b { color: var(--glow); font-weight: 400; }
+  .hex i { color: var(--teal); font-style: normal; }
+
+  .note { font-size: 12.5px; color: var(--muted); }
+  .note.warn { border-left: 3px solid var(--rose); padding: 8px 12px; background: rgba(229,138,157,0.06); border-radius: 0 5px 5px 0; }
+  .status { font-family: var(--mono); font-size: 12px; color: var(--teal); min-height: 18px; }
+  .status.err { color: var(--rose); }
+
+  details { border: 1px solid var(--line); border-radius: 6px; padding: 0; }
+  details summary { cursor: pointer; padding: 10px 14px; font-size: 12.5px; color: var(--muted); }
+  details[open] summary { border-bottom: 1px solid var(--line); }
+  details pre { margin: 0; padding: 12px 14px; font-family: var(--mono); font-size: 12px; color: #c6cbde; overflow-x: auto; }
+  details pre .c { color: var(--faint); }
+
+  input[type="file"] { color: var(--muted); font-size: 12.5px; }
+  input[type="file"]::file-selector-button {
+    background: transparent; color: var(--teal); border: 1px solid var(--line); border-radius: 5px;
+    padding: 7px 12px; font-size: 12.5px; cursor: pointer; font-family: inherit; margin-right: 10px;
+  }
+</style>
+
+<header>
+  <h1>Firefly2 Configurator</h1>
+  <span class="sub">prototype · edit a DeviceDescription, preview it live, flash it as UF2</span>
+  <span class="target">Target:
+    <select id="target" style="width:auto" aria-label="Flash target">
+      <option value="node" selected>node / rfboard (SAMD21 · UF2)</option>
+      <option value="fancy" disabled>fancy-node (STM32G0 · Web Serial) — planned</option>
+      <option value="esp32" disabled>ESP32 2.4 GHz tier (esptool-js) — planned</option>
+    </select>
+  </span>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ LEFT: EDITOR ============ -->
+  <div class="stackv">
+    <div class="panel">
+      <div class="head">Device</div>
+      <div class="body">
+        <div class="row2">
+          <div>
+            <label for="preset">Start from preset (Devices.hpp)</label>
+            <select id="preset"></select>
+          </div>
+          <div>
+            <label for="milliamps">Power budget (mA @ 5 V)</label>
+            <input type="number" id="milliamps" min="100" max="20000" step="50" value="2350">
+          </div>
+        </div>
+
+        <div id="striplist"></div>
+        <button class="ghost" id="addstrip">+ add strip</button>
+
+        <div class="readout">
+          <div class="r" id="ro-leds"><b>0</b><span>total LEDs (max 255)</span></div>
+          <div class="r" id="ro-draw"><b>0 mA</b><span>worst-case draw @ 60 mA/LED</span></div>
+          <div class="r" id="ro-strips"><b>0</b><span>strips (max 8)</span></div>
+        </div>
+        <p class="note" style="margin-bottom:0">FastLED caps actual draw at the power budget (<span style="font-family:var(--mono)">setMaxPowerInVoltsAndMilliamps</span>), so exceeding it costs brightness, not hardware.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="head">Config blob · proposed flash format v1</div>
+      <div class="body stackv" style="gap:12px">
+        <div class="hex" id="hexdump" aria-label="Config blob hex dump"></div>
+        <details>
+          <summary>Firmware-side struct (the contract this blob implements)</summary>
+          <pre><span class="c">// 32 bytes, little-endian, written at 0x0001E000 on node
+// (kEepromStart = 0x20000 − 0x2000). Implemented in firmware as
+// DeviceDescription::SerializeV1 / FromV1 — falls back to
+// Devices::current on magic/version/CRC mismatch.</span>
+struct FlashConfigV1 {
+  char     magic[4];      <span class="c">// "FFLY"</span>
+  uint8_t  version;       <span class="c">// 1</span>
+  uint8_t  strip_count;   <span class="c">// 1..8</span>
+  uint16_t reserved;      <span class="c">// 0</span>
+  uint32_t milliamps_supported;
+  struct { uint8_t led_count; uint8_t flags; } strips[8];
+  uint32_t crc32;         <span class="c">// IEEE CRC-32 of bytes 0..27</span>
+};</pre>
+        </details>
+        <div class="btnrow">
+          <button class="ghost" id="copyc">Copy as C array</button>
+          <span class="status" id="copystatus"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ RIGHT: PREVIEW + FLASH ============ -->
+  <div class="stackv">
+    <div class="panel">
+      <div class="head">Live preview <span style="text-transform:none;letter-spacing:0;margin-left:auto">faithful ports of the C++ effects · rendered at network time</span></div>
+      <div class="body">
+        <div class="pvbar">
+          <div>
+            <label for="effect">Effect</label>
+            <select id="effect">
+              <option value="rainbow">RainbowEffect</option>
+              <option value="colorcycle">ColorCycleEffect</option>
+              <option value="spark">SparkEffect</option>
+              <option value="firefly">FireflyEffect</option>
+              <option value="morse">MorseEffect — morse beacon</option>
+            </select>
+          </div>
+          <div>
+            <label for="palette">Palette (SET_EFFECT palette_index)</label>
+            <select id="palette"></select>
+            <div class="palswatch" id="palswatch" aria-hidden="true"></div>
+          </div>
+          <div class="pw"><button class="ghost" id="pause" aria-pressed="false">Pause</button></div>
+        </div>
+        <canvas id="preview" height="200" aria-label="Animated preview of the configured LED strips"></canvas>
+        <p class="note" style="margin-bottom:0">Honors <span style="font-family:var(--mono)">Reversed / Off / Dim</span> exactly as <span style="font-family:var(--mono)">LedManager::RunEffect</span> does; <span style="font-family:var(--mono)">Tiny / Bright / Circular / Mirrored</span> are interpreted inside each effect, as on hardware.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="head">Morse pattern generator <span style="text-transform:none;letter-spacing:0;margin-left:auto">select “Morse beacon” above to preview</span></div>
+      <div class="body stackv" style="gap:12px">
+        <div class="pvbar" style="margin-bottom:0">
+          <div style="flex:2">
+            <label for="morsetext">Message</label>
+            <input type="text" id="morsetext" value="FIREFLY" maxlength="64" autocomplete="off" spellcheck="false">
+          </div>
+          <div>
+            <label for="morseunit">Unit (ms)</label>
+            <input type="number" id="morseunit" min="20" max="1000" step="10" value="120">
+          </div>
+          <div>
+            <label for="morsemode">Mode</label>
+            <select id="morsemode">
+              <option value="blink">Blink — temporal beacon</option>
+              <option value="marquee">Marquee — scrolls along strip</option>
+              <option value="static">Static — printed on strip</option>
+            </select>
+          </div>
+        </div>
+        <div class="hex" id="morseout" aria-live="polite"></div>
+        <div class="btnrow">
+          <button class="ghost" id="morsecopy">Copy timing as C array</button>
+          <span class="status" id="morsestatus"></span>
+        </div>
+        <p class="note" style="margin:0">ITU timing: dit = 1 unit, dah = 3, symbol gap = 1, letter gap = 3, word gap = 7; the loop ends with a word gap so repeats read cleanly. <b>Blink and marquee modes are in firmware</b> as <span style="font-family:var(--mono)">MorseEffect</span> (<span style="font-family:var(--mono)">Mode::kBlink</span> / <span style="font-family:var(--mono)">Mode::kMarquee</span>, 120 ms unit, palette-colored, compiled-in messages registered in <span style="font-family:var(--mono)">LedManager.cpp</span>). Marquee prints the pattern one unit per LED and scrolls one LED per unit; long patterns wrap. Freeform messages here and the static mode are page-side design tools; use the message string or C export to promote a pattern into firmware.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="head">Flash · config blob → UF2</div>
+      <div class="body stackv" style="gap:12px">
+        <p class="note warn" style="margin:0"><b>Firmware requirement:</b> the board must run firmware that includes <span style="font-family:var(--mono)">DeviceDescription::FromV1</span> (node builds now default to <span style="font-family:var(--mono)">READ_FROM_FLASH</span>). Flash the firmware once via the converter below; after that, config-only flashes are all you need. Older firmware ignores the config blob and falls back to its compiled-in device.</p>
+        <div class="btnrow">
+          <button class="action" id="saveuf2">Save config .uf2</button>
+          <button class="ghost" id="flashdrive">Flash to UF2 drive…</button>
+          <span class="status" id="flashstatus"></span>
+        </div>
+        <p class="note" style="margin:0">“Save” downloads the file for drag-and-drop onto the <span style="font-family:var(--mono)">FIREFLY</span> boot drive (double-tap reset to enter the bootloader). “Flash to drive” writes it directly via the File System Access API — Chromium-only; the download path works everywhere.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="head">Flash · firmware .bin → UF2 <span style="text-transform:none;letter-spacing:0;margin-left:auto">works with current firmware</span></div>
+      <div class="body stackv" style="gap:12px">
+        <p class="note" style="margin:0">Reproduces <span style="font-family:var(--mono)">tools/create_uf2.py</span> in the browser: family <span style="font-family:var(--mono)">0x68ED2B88</span> (SAMD21), base <span style="font-family:var(--mono)">0x2000</span>. Feed it <span style="font-family:var(--mono)">.pio/build/node/firmware.bin</span>.</p>
+        <div class="btnrow">
+          <input type="file" id="binfile" accept=".bin" aria-label="Firmware .bin file">
+        </div>
+        <div class="btnrow">
+          <button class="action" id="savefw" disabled>Save firmware .uf2</button>
+          <button class="ghost" id="flashfw" disabled>Flash to UF2 drive…</button>
+          <span class="status" id="fwstatus"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= FastLED math ports ================= */
+function scale8(i, s) { return (i * (1 + s)) >> 8; }
+function scale8_video(i, s) { return ((i * s) >> 8) + ((i && s) ? 1 : 0); }
+function scale16(i, s) { return Math.floor((i * s) / 65536); }
+function triwave8(x) { x &= 0xff; if (x & 0x80) x = 255 - x; return (x << 1) & 0xff; }
+function ease8InOutCubic(i) {
+  const ii = (i * i) >> 8, iii = (ii * i) >> 8;
+  let r = 3 * ii - 2 * iii;
+  if (r > 255) r = 255;
+  return r;
+}
+function cubicwave8(x) { return ease8InOutCubic(triwave8(x)); }
+function sin16(x) { return Math.round(32767 * Math.sin(((x & 0xffff) / 65536) * 2 * Math.PI)); }
+function lerp16by16(a, b, frac) {
+  return b > a ? a + scale16(b - a, frac) : a - scale16(a - b, frac);
+}
+function hsv2rgb(h, s, v) {  // hsv2rgb_rainbow port
+  const offset = h & 0x1f, offset8 = offset << 3;
+  const third = scale8(offset8, 85);
+  let r, g, b;
+  if (!(h & 0x80)) {
+    if (!(h & 0x40)) {
+      if (!(h & 0x20)) { r = 255 - third; g = third; b = 0; }
+      else { r = 171; g = 85 + third; b = 0; }
+    } else {
+      if (!(h & 0x20)) { const tt = scale8(offset8, 170); r = 171 - tt; g = 170 + third; b = 0; }
+      else { r = 0; g = 255 - third; b = third; }
+    }
+  } else {
+    if (!(h & 0x40)) {
+      if (!(h & 0x20)) { const tt = scale8(offset8, 170); r = 0; g = 171 - tt; b = 85 + tt; }
+      else { r = third; g = 0; b = 255 - third; }
+    } else {
+      if (!(h & 0x20)) { r = 85 + third; g = 0; b = 171 - third; }
+      else { r = 170 + third; g = 0; b = 85 - third; }
+    }
+  }
+  if (s !== 255) {
+    if (s === 0) { r = g = b = 255; }
+    else {
+      let desat = 255 - s;
+      desat = scale8_video(desat, desat);
+      const satscale = 255 - desat;
+      if (r) r = scale8(r, satscale) + 1;
+      if (g) g = scale8(g, satscale) + 1;
+      if (b) b = scale8(b, satscale) + 1;
+      r += desat; g += desat; b += desat;
+    }
+  }
+  if (v !== 255) {
+    const val = scale8_video(v, v);
+    if (val === 0) { r = g = b = 0; }
+    else {
+      if (r) r = scale8(r, val) + 1;
+      if (g) g = scale8(g, val) + 1;
+      if (b) b = scale8(b, val) + 1;
+    }
+  }
+  return [Math.min(r, 255), Math.min(g, 255), Math.min(b, 255)];
+}
+
+/* ================= ColorPalette port ================= */
+class ColorPalette {
+  constructor(colors) { this.colors = colors; } // [[h,s,v],...]
+  get size() { return this.colors.length; }
+  getColor(i) { const c = this.colors[i % this.colors.length]; return { h: c[0], s: c[1], v: c[2] }; }
+  getGradient(position, wrap = true) { // position: fract16
+    position &= 0xffff;
+    if (this.colors.length === 0) return { h: 0, s: 0, v: 0 };
+    if (this.colors.length === 1) return this.getColor(0);
+    const size = wrap ? this.colors.length : this.colors.length - 1;
+    const range = Math.floor(65535 / size);
+    const index = Math.floor(position / range);
+    const t = Math.floor(((position - index * range) * 65535) / range);
+    const start = this.getColor(index);
+    if (position % range === 0) return start;
+    const finish = this.getColor(index + 1);
+    const out = { h: 0, s: 0, v: 0 };
+    if (Math.abs(start.h - finish.h) < 127) {
+      out.h = lerp16by16(start.h, finish.h, t);
+    } else {
+      let hue = start.h < finish.h
+        ? lerp16by16(start.h + 255, finish.h, t)
+        : lerp16by16(start.h, finish.h + 255, t);
+      if (hue > 255) hue -= 255;
+      out.h = hue;
+    }
+    out.s = lerp16by16(start.s, finish.s, t);
+    out.v = lerp16by16(start.v, finish.v, t);
+    return out;
+  }
+}
+// Effect::palettes(), FastLED hues: RED 0 ORANGE 32 YELLOW 64 GREEN 96 AQUA 128 BLUE 160 PURPLE 192 PINK 224
+const PALETTES = [
+  ["Red", [[0,255,255]]], ["Orange", [[32,255,255]]], ["Yellow", [[64,255,255]]],
+  ["Green", [[96,255,255]]], ["Aqua", [[128,255,255]]], ["Blue", [[160,255,255]]],
+  ["Purple", [[192,255,255]]], ["Pink", [[224,255,255]]],
+  ["Rainbow", [[0,255,255],[96,255,255],[160,255,255]]],
+  ["Warm", [[0,255,255],[192,255,255]]],
+  ["Cool", [[96,255,255],[160,255,255]]],
+  ["Yellow-green", [[64,255,255],[128,255,255]]],
+  ["80s Miami", [[192,255,255],[32,255,255]]],
+  ["Vaporwave", [[33,241,249],[247,188,255],[201,225,160],[153,251,150]]],
+  ["Cool blue", [[128,0,255],[160,255,255]]],
+  ["Candy-cane", [[0,255,255],[0,0,255]]],
+  ["Winter-mint candy-cane", [[128,255,255],[128,0,255]]],
+  ["Fire", [[0,255,255],[32,255,255],[64,255,255]]],
+  ["Pastel rainbow", [[0,127,192],[96,127,192],[160,127,192]]],
+  ["Jazz cup", [[132,255,255],[192,255,255],[0,0,200]]],
+  ["Yellow & double purp", [[192,255,255],[64,255,255],[192,255,255]]],
+  ["Double rainbow", [[0,255,255],[96,255,255],[160,255,255],[0,255,255],[96,255,255],[160,255,255]]],
+].map(([name, c]) => ({ name, pal: new ColorPalette(c) }));
+
+/* ================= StripFlag bits (StripDescription.hpp) ================= */
+const FLAGS = [
+  ["Tiny", 1], ["Bright", 2], ["Circular", 4], ["Mirrored", 8],
+  ["Reversed", 16], ["Controller", 32], ["Dim", 64], ["Off", 128],
+];
+const F = Object.fromEntries(FLAGS);
+const flagEnabled = (strip, bit) => (strip.flags & bit) === bit;
+
+/* ================= Effect ports ================= */
+function MirrorIndex(idx, count) { // returns [idx, count]
+  idx %= count;
+  const newCount = (count + 1) >> 1;
+  if (idx >= newCount) idx = count - idx - 1;
+  return [idx, newCount];
+}
+const truncFract16 = x => ((x % 256) + 256) % 256 << 8; // C++: (uint16)(x << 8)
+
+function rainbowGetRGB(led, t, strip, palIdx) {
+  const v = flagEnabled(strip, F.Bright) ? 255 : 128;
+  const pal = PALETTES[palIdx].pal;
+  if (pal.size < 2) {
+    if (flagEnabled(strip, F.Tiny)) return pal.getGradient(cubicwave8(Math.floor(t / 16)) << 8);
+    const c = pal.getColor(0);
+    const w = cubicwave8(Math.floor(t / 16) + led * 8);
+    c.v = flagEnabled(strip, F.Bright) ? w : Math.floor((w * 2) / 3);
+    return c;
+  }
+  const pos = flagEnabled(strip, F.Tiny) ? Math.floor(t / 16) : Math.floor(t / 16) + led * 8;
+  const c = pal.getGradient(truncFract16(pos));
+  c.v = v;
+  return c;
+}
+function colorCycleGetRGB(led, t, strip, palIdx) {
+  const pal = PALETTES[palIdx].pal;
+  if (pal.size < 2) {
+    const c = pal.getColor(0);
+    const w = cubicwave8(Math.floor(t / 16));
+    c.v = flagEnabled(strip, F.Bright) ? w : Math.floor((w * 2) / 3);
+    return c;
+  }
+  const c = pal.getGradient(truncFract16(Math.floor(t / 16)));
+  if (!flagEnabled(strip, F.Bright)) c.v = Math.floor(c.v / 2);
+  return c;
+}
+const SPARK_BRIGHT = [255, 255, 128, 96, 48, 32, 24, 16];
+function sparkGetRGB(led, t, strip, palIdx) {
+  const pulse = SPARK_BRIGHT.length;
+  const pal = PALETTES[palIdx].pal;
+  let ledCount = strip.count, ledIndex = led;
+  if (flagEnabled(strip, F.Mirrored)) [ledIndex, ledCount] = MirrorIndex(ledIndex, ledCount);
+  let relativePos, reverse = false;
+  if (flagEnabled(strip, F.Circular)) {
+    relativePos = (Math.floor((t * ledCount) / 3000) + ledIndex) % ledCount;
+  } else {
+    let pos = Math.floor((t * (ledCount + pulse)) / 3000) % ((ledCount + pulse) * 2);
+    if (pos > ledCount + pulse) { reverse = true; pos = (ledCount + pulse) - (pos - (ledCount + pulse)); }
+    relativePos = pos - ledIndex;
+  }
+  const hsv = pal.getGradient(truncFract16(Math.floor(t / 24) + relativePos * 14));
+  if (relativePos < 0 || relativePos >= ledCount + pulse) hsv.v = 0;
+  else if (relativePos < pulse) hsv.v = SPARK_BRIGHT[reverse ? pulse - relativePos - 1 : relativePos];
+  else hsv.v = 0;
+  return hsv;
+}
+const FF_PERIOD = 20000, FF_SINMULT = 64, FF_BLINK = Math.floor(65536 / FF_SINMULT);
+let fireflyOffset = Math.floor(Math.random() * (FF_BLINK / 2));
+function fireflyGetRGB(led, t, strip, palIdx) {
+  let offset = fireflyOffset;
+  if (flagEnabled(strip, F.Controller)) {
+    if (led % 2 === 1) return { h: 0, s: 0, v: 0 };
+    offset = (((FF_BLINK + 1234) << (led & 31)) >>> 0) % (FF_BLINK / 2);
+  }
+  const phase = Math.floor(t / FF_PERIOD) % 3;
+  const periodStart = Math.floor(t / FF_PERIOD) * FF_PERIOD;
+  const elapsed = t - periodStart, remaining = FF_PERIOD - elapsed;
+  let adj;
+  if (phase === 0) adj = offset < FF_BLINK / 4 ? t - Math.floor((offset * remaining) / FF_PERIOD) : t + Math.floor((offset * remaining) / FF_PERIOD);
+  else if (phase === 1) adj = t;
+  else adj = offset < FF_BLINK / 4 ? t - Math.floor((offset * elapsed) / FF_PERIOD) : t + Math.floor((offset * elapsed) / FF_PERIOD);
+  let curve = sin16(((adj >>> 0) * FF_SINMULT) >>> 0);
+  if (curve < 0) curve = 0;
+  const c = PALETTES[palIdx].pal.getGradient(truncFract16(Math.floor(t / FF_BLINK)));
+  c.v = Math.floor(curve / 256);
+  return c;
+}
+/* ================= Morse pattern generator (page-only, no firmware effect yet) ================= */
+const MORSE = {
+  A:".-",B:"-...",C:"-.-.",D:"-..",E:".",F:"..-.",G:"--.",H:"....",I:"..",
+  J:".---",K:"-.-",L:".-..",M:"--",N:"-.",O:"---",P:".--.",Q:"--.-",R:".-.",
+  S:"...",T:"-",U:"..-",V:"...-",W:".--",X:"-..-",Y:"-.--",Z:"--..",
+  "0":"-----","1":".----","2":"..---","3":"...--","4":"....-","5":".....",
+  "6":"-....","7":"--...","8":"---..","9":"----.",
+  ".":".-.-.-",",":"--..--","?":"..--..","'":".----.","!":"-.-.--","/":"-..-.",
+  "(":"-.--.",")":"-.--.-","&":".-...",":":"---...",";":"-.-.-.","=":"-...-",
+  "+":".-.-.","-":"-....-","_":"..--.-","\"":".-..-.","@":".--.-.",
+};
+// ITU timing in units: dit 1 on, dah 3 on, symbol gap 1 off, letter gap 3 off,
+// word gap 7 off. A trailing word gap is appended so the loop reads cleanly.
+function compileMorse(text) {
+  const units = [], skipped = [];
+  let display = "";
+  const words = text.toUpperCase().split(/\s+/).filter(w => w);
+  words.forEach((word, wi) => {
+    let wroteChar = false;
+    let wordUnits = [], wordDisplay = "";
+    for (const ch of word) {
+      const code = MORSE[ch];
+      if (!code) { skipped.push(ch); continue; }
+      if (wroteChar) { wordUnits.push(false, false, false); wordDisplay += " "; }
+      wroteChar = true;
+      code.split("").forEach((sym, si) => {
+        if (si) wordUnits.push(false);
+        for (let k = 0; k < (sym === "-" ? 3 : 1); k++) wordUnits.push(true);
+      });
+      wordDisplay += code.replace(/\./g, "·").replace(/-/g, "−");
+    }
+    if (wroteChar) {
+      if (units.length) { units.push(...Array(7).fill(false)); display += "   "; }
+      units.push(...wordUnits);
+      display += wordDisplay;
+    }
+  });
+  if (units.length) units.push(...Array(7).fill(false));
+  return { units, display, skipped };
+}
+let morse = { units: [], display: "", skipped: [] };
+let morseUnitMs = 100;
+function morseGetRGB(led, t, strip, palIdx) {
+  const n = morse.units.length;
+  if (!n) return { h: 0, s: 0, v: 0 };
+  let unitIdx;
+  const mode = document.getElementById("morsemode").value;
+  if (mode === "blink") {
+    unitIdx = Math.floor(t / morseUnitMs) % n;
+  } else {
+    const offset = mode === "marquee" ? Math.floor(t / morseUnitMs) : 0;
+    unitIdx = (((led + offset) % n) + n) % n;
+  }
+  if (!morse.units[unitIdx]) return { h: 0, s: 0, v: 0 };
+  const c = PALETTES[palIdx].pal.getGradient(Math.floor((unitIdx * 65535) / n));
+  if (!flagEnabled(strip, F.Bright)) c.v = Math.floor(c.v / 2);  // matches MorseEffect.cpp
+  return c;
+}
+function morseDurations() {
+  const out = [];
+  if (!morse.units.length) return out;
+  let cur = morse.units[0], run = 0;
+  for (const u of morse.units) {
+    if (u === cur) run++;
+    else { out.push(run * morseUnitMs); cur = u; run = 1; }
+  }
+  out.push(run * morseUnitMs);
+  return out;
+}
+
+const EFFECTS = { rainbow: rainbowGetRGB, colorcycle: colorCycleGetRGB, spark: sparkGetRGB, firefly: fireflyGetRGB, morse: morseGetRGB };
+
+/* ================= Device presets (Devices.hpp, all 2350 mA) ================= */
+const S = (count, flags = 0) => ({ count, flags });
+const PRESETS = {
+  "scarf (current)": [S(46)],
+  "bike": [S(30, F.Bright)], "ben_s_bike": [S(28, F.Bright)], "will_bike": [S(63, F.Bright)],
+  "lantern": [S(5, F.Tiny)],
+  "puck": [S(12, F.Tiny | F.Circular)],
+  "two_side_puck": [S(24, F.Tiny | F.Circular | F.Mirrored)],
+  "rainbow_cloak": [S(11, F.Tiny | F.Circular), S(94), S(11, F.Tiny | F.Circular | F.Reversed)],
+  "backpack_tail": [S(11)], "dan_jacket": [S(60)], "will_jacket": [S(56)],
+  "will_bike_front": [S(27, F.Circular)], "will_top_hat": [S(50, F.Circular)],
+  "bike_front": [S(18, F.Circular)], "hex_light": [S(12, F.Circular | F.Tiny)],
+  "half_matrix_panel": Array.from({ length: 8 }, (_, i) => S(16, i % 2 ? F.Reversed : 0)),
+  "backpack_rope": [S(96, F.Dim), S(96, F.Dim | F.Reversed)],
+  "ufo": [S(12, F.Circular), S(16, F.Circular), S(12, F.Bright | F.Circular), S(52, F.Dim | F.Circular)],
+  "brooke_bike": [S(15, F.Circular), S(19), S(16, F.Circular), S(33, F.Bright)],
+  "ross_backpack": [S(13, F.Reversed), S(12), S(13, F.Reversed), S(12)],
+  "whatever": [S(18, F.Circular)],
+  "will_backpack": [S(96), S(96, F.Reversed)],
+};
+
+/* ================= App state ================= */
+const device = { milliamps: 2350, strips: [S(46)] };
+
+/* ================= Editor UI ================= */
+const $ = id => document.getElementById(id);
+const stripList = $("striplist");
+
+function renderStrips() {
+  stripList.innerHTML = "";
+  device.strips.forEach((strip, si) => {
+    const div = document.createElement("div");
+    div.className = "strip";
+    const top = document.createElement("div");
+    top.className = "top";
+    top.innerHTML = `<span class="idx">S${si + 1}</span><span class="leds-label">LEDs</span>`;
+    const num = document.createElement("input");
+    num.type = "number"; num.min = 1; num.max = 255; num.value = strip.count;
+    num.setAttribute("aria-label", `Strip ${si + 1} LED count`);
+    num.addEventListener("input", () => { strip.count = Math.max(1, Math.min(255, +num.value || 1)); update(); });
+    top.appendChild(num);
+    const del = document.createElement("button");
+    del.className = "del"; del.textContent = "×"; del.title = "Remove strip";
+    del.setAttribute("aria-label", `Remove strip ${si + 1}`);
+    del.disabled = device.strips.length === 1;
+    del.addEventListener("click", () => { device.strips.splice(si, 1); renderStrips(); update(); });
+    top.appendChild(del);
+    div.appendChild(top);
+    const fl = document.createElement("div");
+    fl.className = "flags";
+    for (const [name, bit] of FLAGS) {
+      const b = document.createElement("button");
+      b.className = "flagbtn"; b.textContent = name;
+      b.setAttribute("aria-pressed", flagEnabled(strip, bit));
+      b.addEventListener("click", () => { strip.flags ^= bit; b.setAttribute("aria-pressed", flagEnabled(strip, bit)); update(); });
+      fl.appendChild(b);
+    }
+    div.appendChild(fl);
+    stripList.appendChild(div);
+  });
+  $("addstrip").disabled = device.strips.length >= 8;
+}
+
+const presetSel = $("preset");
+presetSel.appendChild(new Option("— custom —", ""));
+Object.keys(PRESETS).forEach(k => presetSel.appendChild(new Option(k, k)));
+presetSel.value = "scarf (current)";
+presetSel.addEventListener("change", () => {
+  if (!PRESETS[presetSel.value]) return;
+  device.strips = PRESETS[presetSel.value].map(s => ({ ...s }));
+  device.milliamps = 2350;
+  $("milliamps").value = 2350;
+  renderStrips(); update();
+});
+$("milliamps").addEventListener("input", e => { device.milliamps = Math.max(0, +e.target.value || 0); update(); });
+$("addstrip").addEventListener("click", () => {
+  if (device.strips.length < 8) { device.strips.push(S(12)); presetSel.value = ""; renderStrips(); update(); }
+});
+stripList.addEventListener("input", () => { presetSel.value = ""; });
+
+/* ================= Config blob + CRC32 + UF2 ================= */
+function crc32(bytes) {
+  let c = 0xffffffff;
+  for (const b of bytes) {
+    c ^= b;
+    for (let k = 0; k < 8; k++) c = (c >>> 1) ^ (0xedb88320 & -(c & 1));
+  }
+  return (c ^ 0xffffffff) >>> 0;
+}
+function buildBlob() {
+  const buf = new ArrayBuffer(32);
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  u8.set([0x46, 0x46, 0x4c, 0x59]);            // "FFLY"
+  dv.setUint8(4, 1);                            // version
+  dv.setUint8(5, device.strips.length);
+  dv.setUint16(6, 0, true);                     // reserved
+  dv.setUint32(8, device.milliamps, true);
+  device.strips.forEach((s, i) => { dv.setUint8(12 + i * 2, s.count); dv.setUint8(13 + i * 2, s.flags); });
+  dv.setUint32(28, crc32(u8.subarray(0, 28)), true);
+  return u8;
+}
+const UF2_FAMILY_SAMD21 = 0x68ed2b88;
+const CONFIG_ADDR = 0x0001e000;                 // kEepromStart = 0x20000 - 0x2000
+const APP_BASE = 0x00002000;                    // from tools/create_uf2.py
+function makeUF2(data, targetAddr) {
+  const payload = 256;
+  const numBlocks = Math.ceil(data.length / payload);
+  const out = new Uint8Array(numBlocks * 512);
+  for (let i = 0; i < numBlocks; i++) {
+    const dv = new DataView(out.buffer, i * 512, 512);
+    dv.setUint32(0, 0x0a324655, true);   // "UF2\n"
+    dv.setUint32(4, 0x9e5d5157, true);
+    dv.setUint32(8, 0x00002000, true);   // flags: familyID present
+    dv.setUint32(12, targetAddr + i * payload, true);
+    dv.setUint32(16, payload, true);
+    dv.setUint32(20, i, true);
+    dv.setUint32(24, numBlocks, true);
+    dv.setUint32(28, UF2_FAMILY_SAMD21, true);
+    out.set(data.subarray(i * payload, (i + 1) * payload), i * 512 + 32);
+    dv.setUint32(508, 0x0ab16f30, true);
+  }
+  return out;
+}
+function configUF2() {
+  const row = new Uint8Array(256).fill(0xff);   // pad to one flash row, erased state
+  row.set(buildBlob());
+  return makeUF2(row, CONFIG_ADDR);
+}
+
+/* ================= Save / flash helpers ================= */
+function download(bytes, name) {
+  const url = URL.createObjectURL(new Blob([bytes], { type: "application/octet-stream" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+async function writeToDrive(bytes, name, statusEl) {
+  if (!window.showDirectoryPicker) {
+    statusEl.textContent = "File System Access API unavailable — use Save instead (Chromium-only feature).";
+    statusEl.className = "status err";
+    return;
+  }
+  try {
+    const dir = await window.showDirectoryPicker({ mode: "readwrite" });
+    const fh = await dir.getFileHandle(name, { create: true });
+    const w = await fh.createWritable();
+    await w.write(bytes); await w.close();
+    statusEl.textContent = `Wrote ${name} (${bytes.length} B) — board should reboot.`;
+    statusEl.className = "status";
+  } catch (e) {
+    if (e.name !== "AbortError") { statusEl.textContent = "Write failed: " + e.message; statusEl.className = "status err"; }
+  }
+}
+$("saveuf2").addEventListener("click", () => {
+  download(configUF2(), "firefly-config.uf2");
+  $("flashstatus").textContent = "Saved. Double-tap reset, then drop onto the boot drive.";
+  $("flashstatus").className = "status";
+});
+$("flashdrive").addEventListener("click", () => writeToDrive(configUF2(), "firefly-config.uf2", $("flashstatus")));
+
+let fwBytes = null;
+$("binfile").addEventListener("change", async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  fwBytes = new Uint8Array(await f.arrayBuffer());
+  $("savefw").disabled = $("flashfw").disabled = false;
+  $("fwstatus").textContent = `${f.name}: ${fwBytes.length} B → ${Math.ceil(fwBytes.length / 256)} UF2 blocks @ 0x2000`;
+  $("fwstatus").className = "status";
+});
+$("savefw").addEventListener("click", () => download(makeUF2(fwBytes, APP_BASE), "firefly-firmware.uf2"));
+$("flashfw").addEventListener("click", () => writeToDrive(makeUF2(fwBytes, APP_BASE), "firefly-firmware.uf2", $("fwstatus")));
+
+/* ================= Hex dump + C array ================= */
+function renderHex() {
+  const blob = buildBlob();
+  let html = `<i>@ 0x0001E000 · 32 bytes · CRC32 over 0..27</i>\n`;
+  for (let r = 0; r < 32; r += 8) {
+    html += String(r).padStart(2, "0") + "  ";
+    for (let i = r; i < r + 8; i++) {
+      const hx = blob[i].toString(16).padStart(2, "0").toUpperCase();
+      html += (i < 4 || i >= 28) ? `<b>${hx}</b> ` : hx + " ";
+    }
+    html += "\n";
+  }
+  $("hexdump").innerHTML = html.trimEnd();
+}
+$("copyc").addEventListener("click", async () => {
+  const blob = buildBlob();
+  const body = Array.from(blob, b => "0x" + b.toString(16).padStart(2, "0")).join(", ");
+  const text = `// FlashConfigV1, generated by the Firefly2 configurator\nconst uint8_t kTestConfig[32] = {${body}};`;
+  try {
+    await navigator.clipboard.writeText(text);
+    $("copystatus").textContent = "Copied.";
+  } catch {
+    $("copystatus").textContent = "Clipboard blocked — select from hex dump instead.";
+  }
+  setTimeout(() => { $("copystatus").textContent = ""; }, 3000);
+});
+
+/* ================= Morse UI ================= */
+const escHtml = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function updateMorse() {
+  morse = compileMorse($("morsetext").value);
+  morseUnitMs = Math.max(20, Math.min(1000, +$("morseunit").value || 100));
+  const n = morse.units.length;
+  let html;
+  if (!n) {
+    html = "<i>type a message — A–Z, 0–9, common punctuation</i>";
+  } else {
+    const secs = ((n * morseUnitMs) / 1000).toFixed(1);
+    html = `<b>${morse.display}</b>\n${n} units · ${secs} s/loop · ${Math.round(1200 / morseUnitMs)} WPM equivalent`;
+    if ($("morsemode").value !== "blink") {
+      const longest = Math.max(0, ...device.strips.map(s => s.count));
+      html += ` · spatial: ${n} units vs ${longest}-LED longest strip${n > longest ? " (pattern wraps)" : ""}`;
+    }
+    if (morse.skipped.length) {
+      html += `\n<span style="color:var(--rose)">no morse for: ${escHtml([...new Set(morse.skipped)].join(" "))}</span>`;
+    }
+  }
+  $("morseout").innerHTML = html;
+}
+for (const id of ["morsetext", "morseunit", "morsemode"]) {
+  $(id).addEventListener("input", updateMorse);
+}
+$("morsecopy").addEventListener("click", async () => {
+  if (!morse.units.length) {
+    $("morsestatus").textContent = "Nothing to copy — message is empty.";
+    setTimeout(() => { $("morsestatus").textContent = ""; }, 3000);
+    return;
+  }
+  const durs = morseDurations();
+  const msg = $("morsetext").value.trim().toUpperCase().replace(/["\\]/g, "");
+  const text = `// Morse "${msg}" — ${morseUnitMs} ms unit, ITU timing.\n` +
+    `// Alternating on/off durations in ms, starting with ON; the final\n` +
+    `// entry is the inter-loop word gap.\n` +
+    `const uint16_t kMorseDurationsMs[${durs.length}] = {${durs.join(", ")}};`;
+  try {
+    await navigator.clipboard.writeText(text);
+    $("morsestatus").textContent = "Copied.";
+  } catch {
+    $("morsestatus").textContent = "Clipboard blocked by browser.";
+  }
+  setTimeout(() => { $("morsestatus").textContent = ""; }, 3000);
+});
+
+/* ================= Readouts ================= */
+function update() {
+  updateMorse();
+  const total = device.strips.reduce((a, s) => a + s.count, 0);
+  const draw = total * 60;
+  const roL = $("ro-leds"), roD = $("ro-draw");
+  roL.querySelector("b").textContent = total;
+  roL.className = "r " + (total > 255 ? "bad" : "ok");
+  roD.querySelector("b").textContent = draw.toLocaleString() + " mA";
+  roD.className = "r " + (draw > device.milliamps ? "bad" : "ok");
+  roD.querySelector("span").textContent = draw > device.milliamps
+    ? `worst case exceeds budget — FastLED will scale brightness`
+    : `worst-case draw @ 60 mA/LED`;
+  $("ro-strips").querySelector("b").textContent = device.strips.length;
+  const invalid = total > 255 || total === 0;
+  $("saveuf2").disabled = $("flashdrive").disabled = invalid;
+  renderHex();
+  layoutPreview();
+}
+
+/* ================= Preview ================= */
+const canvas = $("preview"), ctx = canvas.getContext("2d");
+const palSel = $("palette");
+PALETTES.forEach((p, i) => palSel.appendChild(new Option(`${i} · ${p.name}`, i)));
+palSel.value = "8"; // Rainbow
+function renderPalSwatch() {
+  const sw = $("palswatch");
+  sw.innerHTML = "";
+  for (const [h, s, v] of PALETTES[+palSel.value].pal.colors) {
+    const [r, g, b] = hsv2rgb(h, s, v);
+    const i = document.createElement("i");
+    i.style.background = `rgb(${r},${g},${b})`;
+    sw.appendChild(i);
+  }
+}
+palSel.addEventListener("change", renderPalSwatch);
+$("effect").addEventListener("change", () => { fireflyOffset = Math.floor(Math.random() * (FF_BLINK / 2)); });
+
+let layout = [];   // per strip: {y, rows:[{x0, count, startIdx}]}
+function layoutPreview() {
+  const cssW = canvas.offsetWidth || 600;
+  const pad = 14, gapY = 30, ledGap = 3;
+  let maxPerRow = Math.floor((cssW - pad * 2) / 10);
+  let y = 26;
+  layout = [];
+  for (const s of device.strips) {
+    const rows = [];
+    for (let start = 0; start < s.count; start += maxPerRow) {
+      rows.push({ startIdx: start, count: Math.min(maxPerRow, s.count - start), y });
+      y += 16;
+    }
+    layout.push({ rows, ledW: Math.min(14, Math.floor((cssW - pad * 2) / Math.min(s.count, maxPerRow)) - ledGap) });
+    y += gapY - 16 + 16;
+  }
+  const cssH = y + 4;
+  canvas.width = cssW * devicePixelRatio;
+  canvas.height = cssH * devicePixelRatio;
+  canvas.style.height = cssH + "px";
+}
+function flagNames(flags) {
+  return FLAGS.filter(([, b]) => flags & b).map(([n]) => n).join(" · ");
+}
+function drawFrame(t) {
+  const dpr = devicePixelRatio, pad = 14;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const effect = EFFECTS[$("effect").value];
+  const palIdx = +palSel.value;
+  device.strips.forEach((strip, si) => {
+    const L = layout[si];
+    if (!L) return;
+    // label
+    ctx.fillStyle = "#6b7395";
+    ctx.font = "10.5px " + getComputedStyle(document.body).getPropertyValue("--mono");
+    const fl = flagNames(strip.flags);
+    ctx.fillText(`S${si + 1} · ${strip.count} LED${strip.count > 1 ? "s" : ""}${fl ? " · " + fl : ""}`, pad, L.rows[0].y - 8);
+    const d = Math.max(5, L.ledW);
+    for (const row of L.rows) {
+      for (let i = 0; i < row.count; i++) {
+        const stripIndex = row.startIdx + i;
+        // LedManager::RunEffect semantics
+        const virtualIndex = flagEnabled(strip, F.Reversed) ? strip.count - stripIndex - 1 : stripIndex;
+        let r = 0, g = 0, b = 0;
+        if (!flagEnabled(strip, F.Off)) {
+          const hsv = effect(virtualIndex & 0xff, t >>> 0, strip, palIdx);
+          [r, g, b] = hsv2rgb(hsv.h & 0xff, hsv.s & 0xff, hsv.v & 0xff);
+          if (flagEnabled(strip, F.Dim)) { r = Math.floor(r / 8); g = Math.floor(g / 8); b = Math.floor(b / 8); }
+        }
+        const x = pad + i * (d + 3) + d / 2, y = row.y + d / 2;
+        // glow pass
+        const lum = Math.max(r, g, b);
+        if (lum > 24) {
+          const gl = ctx.createRadialGradient(x, y, 0, x, y, d * 1.6);
+          gl.addColorStop(0, `rgba(${r},${g},${b},0.55)`);
+          gl.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = gl;
+          ctx.beginPath(); ctx.arc(x, y, d * 1.6, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.fillStyle = `rgb(${Math.max(r, 10)},${Math.max(g, 12)},${Math.max(b, 20)})`;
+        ctx.beginPath(); ctx.arc(x, y, d / 2, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+  });
+}
+let paused = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+$("pause").setAttribute("aria-pressed", paused);
+if (paused) $("pause").textContent = "Play";
+$("pause").addEventListener("click", () => {
+  paused = !paused;
+  $("pause").textContent = paused ? "Play" : "Pause";
+  $("pause").setAttribute("aria-pressed", paused);
+  if (!paused) requestAnimationFrame(tick);
+});
+const t0 = performance.now();
+function tick() {
+  drawFrame(Math.floor(performance.now() - t0));
+  if (!paused) requestAnimationFrame(tick);
+}
+window.addEventListener("resize", () => { layoutPreview(); if (paused) drawFrame(Math.floor(performance.now() - t0)); });
+
+renderStrips();
+renderPalSwatch();
+update();
+if (paused) drawFrame(12345); else requestAnimationFrame(tick);
+</script>
