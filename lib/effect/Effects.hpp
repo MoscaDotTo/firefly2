@@ -10,6 +10,7 @@
 #include "FireEffect.hpp"
 #include "FireflyEffect.hpp"
 #include "LightningEffect.hpp"
+#include "MorseEffect.hpp"
 #include "PoliceEffect.hpp"
 #include "PrideEffect.hpp"
 #include "RainbowBumpsEffect.hpp"

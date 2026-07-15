@@ -30,6 +30,12 @@ LedManager::LedManager(const DeviceDescription &device,
   AddEffect(new SimpleBlinkEffect(12), 0);
   AddEffect(new SimpleBlinkEffect(300), 0);
 
+  // Morse beacons: blink a predefined message. Note that adding or removing
+  // entries changes the effect indices after this point, so all devices in a
+  // swarm must run firmware with the same list.
+  AddEffect(new MorseEffect("HEHE HAHA FOREVER", MorseEffect::Mode::kMarquee),
+            1);
+
   // These two must be last
   AddEffect(new DisplayColorPaletteEffect(), 0);
   AddEffect(new DarkEffect(), 0);
