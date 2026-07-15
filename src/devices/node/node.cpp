@@ -27,45 +27,36 @@ FastLedManager *led_manager;
 
 constexpr uint32_t kEepromStart = 0x00020000 - 0x2000;
 FlashClass device_storage(/*flash_addr=*/(void *)kEepromStart,
-                          /*size=*/DeviceDescription::kMaxSize);
+                          /*size=*/DeviceDescription::kSerializedSizeV1);
 
 void FeedWatchdog() { WDT->CLEAR.reg = WDT_CLEAR_CLEAR_KEY; }
 
 FastLedManager *ReadDeviceFromFlash() {
-  DeviceDescription *device =
-      (DeviceDescription *)malloc(DeviceDescription::kMaxSize);
+  uint8_t buffer[DeviceDescription::kSerializedSizeV1];
+  device_storage.read(buffer);
+  DeviceDescription *device = DeviceDescription::FromV1(buffer);
   if (device == nullptr) {
-    Serial.println("Failed to malloc DeviceDescription");
-    return new FastLedManager(Devices::current, &state_machine);
-  }
-  device_storage.read((void *)device);
-  if (device->check_value != DeviceDescription::kCheckValue) {
-    Serial.print("Got invalid check value when reading DeviceDescription: ");
-    Serial.println(device->check_value);
+    Serial.println("No valid config in flash, using Devices::current");
     return new FastLedManager(Devices::current, &state_machine);
   }
   return new FastLedManager(*device, &state_machine);
 }
 
 void WriteDeviceToFlash() {
-  // Don't write if current device is equal
-  bool same = true;
-  uint8_t *flash = (uint8_t *)kEepromStart;
-  uint8_t *device = (uint8_t *)(&Devices::current);
-  for (uint32_t i = 0; i < sizeof(Devices::current); i++) {
-    if (flash[i] != device[i]) {
-      same = false;
-      break;
-    }
+  uint8_t serialized[DeviceDescription::kSerializedSizeV1];
+  if (!Devices::current.SerializeV1(serialized)) {
+    Serial.println("Current device not serializable, not writing to flash");
+    return;
   }
 
-  if (same) {
+  // Don't write if current device is equal, to avoid causing flash wear.
+  if (memcmp((const void *)kEepromStart, serialized, sizeof(serialized)) == 0) {
     Serial.println("Current device already written to flash");
     return;
   }
 
   device_storage.erase();
-  device_storage.write((void *)&Devices::current);
+  device_storage.write(serialized);
   Serial.println("Wrote current device to flash");
 }
 

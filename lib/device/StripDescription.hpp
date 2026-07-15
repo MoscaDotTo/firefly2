@@ -23,6 +23,9 @@ class StripDescription {
 
   bool FlagEnabled(StripFlag flag) const;
 
+  /** Returns the flags as a raw bitfield, for serialization. */
+  uint8_t RawFlags() const;
+
  private:
   const uint8_t flags;
 };

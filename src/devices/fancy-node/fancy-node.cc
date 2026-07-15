@@ -59,44 +59,42 @@ uint16_t battery_at_boot = 0;
 bool battery_low = false;
 
 FastLedManager *ReadDeviceFromFlash() {
-  DeviceDescription *device =
-      (DeviceDescription *)malloc(DeviceDescription::kMaxSize);
+  uint8_t buffer[DeviceDescription::kSerializedSizeV1];
+  for (uint32_t i = 0; i < DeviceDescription::kSerializedSizeV1; i++) {
+    buffer[i] = EEPROM.read(i);
+  }
+
+  DeviceDescription *device = DeviceDescription::FromV1(buffer);
   if (device == nullptr) {
-    Serial2.println("Failed to malloc DeviceDescription");
-    return new FastLedManager(Devices::current, &state_machine);
-  }
-
-  uint8_t *device_buffer = (uint8_t *)device;
-  for (uint32_t i = 0; i < DeviceDescription::kMaxSize; i++) {
-    device_buffer[i] = EEPROM.read(i);
-  }
-
-  if (device->check_value != DeviceDescription::kCheckValue) {
-    Serial2.print("Got invalid check value when reading DeviceDescription: ");
-    Serial2.println(device->check_value);
+    Serial2.println("No valid config in flash, using Devices::current");
     return new FastLedManager(Devices::current, &state_machine);
   }
   return new FastLedManager(*device, &state_machine);
 }
 
 void WriteDeviceToFlash() {
+  uint8_t serialized[DeviceDescription::kSerializedSizeV1];
+  if (!Devices::current.SerializeV1(serialized)) {
+    Serial2.println("Current device not serializable, not writing to flash");
+    return;
+  }
+
+  // Don't write if current device is equal, to avoid causing flash wear.
   bool same = true;
-  uint8_t *device = (uint8_t *)(&Devices::current);
-  for (uint32_t i = 0; i < sizeof(Devices::current); i++) {
-    if (EEPROM.read(i) != device[i]) {
+  for (uint32_t i = 0; i < DeviceDescription::kSerializedSizeV1; i++) {
+    if (EEPROM.read(i) != serialized[i]) {
       same = false;
       break;
     }
   }
 
   if (same) {
-    Serial.println("Current device already written to flash");
+    Serial2.println("Current device already written to flash");
     return;
   }
 
-  for (uint32_t i = 0;
-       i < sizeof(Devices::current) && i < DeviceDescription::kMaxSize; i++) {
-    EEPROM.write(i, device[i]);
+  for (uint32_t i = 0; i < DeviceDescription::kSerializedSizeV1; i++) {
+    EEPROM.write(i, serialized[i]);
   }
   EEPROM.commit();
 }
