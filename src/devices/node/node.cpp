@@ -16,7 +16,11 @@
 
 const int kLedPin = 0;
 
-constexpr DeviceMode kDeviceMode = DeviceMode::CURRENT_FROM_HEADER;
+// READ_FROM_FLASH falls back to Devices::current when flash holds no valid
+// config, so unconfigured boards behave like CURRENT_FROM_HEADER. This allows
+// configuring boards by writing a FlashConfigV1 blob to kEepromStart (e.g.
+// from the web configurator, as a UF2 file) without recompiling.
+constexpr DeviceMode kDeviceMode = DeviceMode::READ_FROM_FLASH;
 
 // Note: `RadioHeadRadio` needs to be a pointer - if it's an object, the node
 // crashes upon receiving a packet.

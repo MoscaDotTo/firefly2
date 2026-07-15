@@ -16,7 +16,11 @@
 #include "../../generic/NetworkManager.hpp"
 #include "../../generic/RadioStateMachine.hpp"
 
-constexpr DeviceMode kDeviceMode = DeviceMode::CURRENT_FROM_HEADER;
+// READ_FROM_FLASH falls back to Devices::current when flash holds no valid
+// config, so unconfigured boards behave like CURRENT_FROM_HEADER. This allows
+// configuring boards by writing a FlashConfigV1 blob to the EEPROM emulation
+// area without recompiling.
+constexpr DeviceMode kDeviceMode = DeviceMode::READ_FROM_FLASH;
 
 constexpr int kLedPin = PB0;
 constexpr int kNeopixelPin = PA12;
